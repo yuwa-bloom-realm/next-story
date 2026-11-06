@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light only">
 <title>NEXT STORY 第1期 先行案内｜Yuwa Entertainment</title>
-<meta name="description" content="私の人生、まだ続きがあった。あなたの人生を1冊の絵本に。その続きを、あなた自身が生き始める2ヶ月。NEXT STORY 第1期の先行案内です。">
+<meta name="description" content="私の人生、まだ続きがあった。これまで歩んできた人生を、世界に一冊だけの絵本に。そしてその続きを、あなた自身が生きていく。NEXT STORY 第1期の先行案内です。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
@@ -52,9 +52,33 @@
     margin:34px 0 8px;letter-spacing:.06em;
   }
   .flourish{display:block;width:120px;height:1px;margin:22px auto;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-  .lead{font-size:15px;color:var(--ink-soft);text-align:left}
-  .lead p+p{margin-top:14px}
+  /* 日本語の不自然な折り返しを防ぐ：意味のかたまりごとに改行させる */
+  .nw{display:inline-block}
+  h1,.catch,.voice,.to-you,.info-title{text-wrap:balance}
+
+  .voice{font-family:var(--serif);font-size:17px;line-height:2;letter-spacing:.04em;margin-top:6px}
+  .voice p+p{margin-top:4px}
+  .to-you{font-family:var(--serif);font-size:16px;color:var(--rose);margin:18px 0 22px;letter-spacing:.1em}
+
+  .lead{font-size:15px;color:var(--ink-soft);text-align:center;line-height:2.05}
+  .lead p+p{margin-top:16px}
   .lead strong{color:var(--ink);font-weight:500}
+
+  .info{
+    text-align:center;margin:0 0 30px;padding:22px 18px;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    font-size:15px;color:var(--ink-soft);line-height:2;
+  }
+  .info-title{font-family:var(--serif);font-size:19px;color:var(--ink);margin:2px 0 8px;letter-spacing:.08em}
+  .info strong{color:var(--ink);font-weight:500}
+  .info .small{font-size:13px;margin-top:8px}
+
+  .after{
+    background:#FBF3EE;border-radius:12px;padding:16px 16px 14px;margin:4px 0 18px;
+    font-size:14px;color:var(--ink-soft);line-height:1.9;
+  }
+  .after p+p{margin-top:6px}
+  .after-title{font-family:var(--serif);font-size:15px;color:var(--ink);margin-bottom:4px}
 
   .card{
     background:var(--paper);
@@ -105,7 +129,18 @@
 
   #done{display:none;text-align:center}
   #done .catch{margin-top:6px}
-  #done p{font-size:15px;color:var(--ink-soft);text-align:left;margin-top:14px}
+  #done p{font-size:15px;color:var(--ink-soft);margin-top:14px}
+
+  /* スマホの細い画面 */
+  @media (max-width:380px){
+    .wrap{padding:44px 16px 60px}
+    h1{font-size:34px}
+    .catch{font-size:19px}
+    .voice{font-size:15.5px}
+    .lead,.info{font-size:14px}
+    .card{padding:26px 16px}
+    label.q{font-size:14.5px}
+  }
 
   footer{text-align:center;margin-top:40px;font-size:12px;color:var(--ink-soft);letter-spacing:.1em}
   footer .brand{font-family:var(--serif);font-size:14px;color:var(--ink)}
@@ -122,12 +157,25 @@
     <p class="catch">私の人生、<br>まだ続きがあった。</p>
     <span class="flourish"></span>
 
+    <div class="voice">
+      <p><span class="nw">「誰かのために、</span><span class="nw">一生懸命</span><span class="nw">生きてきた。」</span></p>
+      <p><span class="nw">「でも、</span><span class="nw">私の人生って、</span><span class="nw">これだけだっけ？」</span></p>
+    </div>
+    <p class="to-you">そんなあなたへ。</p>
+
     <div class="lead">
-      <p>あなたの人生を、<strong>1冊の絵本</strong>に。<br>そして、その続きを、<strong>あなた自身が生き始める</strong>2ヶ月。</p>
-      <p>NEXT STORY 第1期（2〜3名）の募集を、ここに登録してくださった方へ<strong>先にお知らせ</strong>します。</p>
-      <p>登録しても、申し込む義務はありません。<br>どうぞ気軽に。</p>
+      <p><span class="nw">これまで歩んできた人生を、</span><span class="nw"><strong>世界に一冊だけの絵本</strong>に。</span></p>
+      <p><span class="nw">そして、その物語の続きを、</span><span class="nw">今度は<strong>あなた自身が</strong></span><span class="nw">生きていく。</span></p>
+      <p><span class="nw">NEXT STORYは、</span><span class="nw">過去を振り返るだけで</span><span class="nw">終わらない、</span><span class="nw">これからの人生を動かす</span><span class="nw">物語体験です。</span></p>
     </div>
   </header>
+
+  <section class="info">
+    <div class="eyebrow">FIRST EDITION</div>
+    <p class="info-title">第1期（2〜3名）</p>
+    <p><span class="nw">NEXT STORY 第1期の募集情報を、</span><span class="nw">先行登録してくださった方へ</span><span class="nw"><strong>優先してお届け</strong>します。</span></p>
+    <p class="small"><span class="nw">登録は無料。</span><span class="nw">登録したからといって、</span><span class="nw">申し込む必要はありません。</span></p>
+  </section>
 
   <section class="card" id="formCard">
     <h2>先行案内を受け取る</h2>
@@ -155,12 +203,18 @@
       </div>
 
       <div class="field">
-        <label class="q" for="message">「本当は、まだやってみたいことがある」<span class="opt">任意</span></label>
-        <p class="hint">もしよければ、今の気持ちを聞かせてください。<br>ひとことでも、うまくまとまっていなくても大丈夫です。</p>
+        <label class="q" for="message"><span class="nw">もし、これからの人生に</span><span class="nw">もうひとつ物語があるとしたら、</span><span class="nw">どんなことを</span><span class="nw">してみたいですか？</span><span class="opt">任意</span></label>
+        <p class="hint"><span class="nw">まだ決まっていなくても大丈夫。</span><span class="nw">今の気持ちを自由に</span><span class="nw">聞かせてください。</span></p>
         <textarea id="message" name="message"></textarea>
       </div>
 
-      <p class="note">いただいた内容は、NEXT STORY のご案内と、ゆわからのご連絡にだけ使います。</p>
+      <div class="after">
+        <p class="after-title">ご登録のあとは</p>
+        <p><span class="nw">ご登録いただいたメールアドレスへ、</span><span class="nw">第1期の募集日程や</span><span class="nw">詳しい内容を</span><span class="nw">優先してお届けします。</span></p>
+        <p><span class="nw">登録後すぐに、</span><span class="nw">確認のメールが届きます。</span></p>
+      </div>
+
+      <p class="note"><span class="nw">いただいた内容は、</span><span class="nw">NEXT STORY のご案内と、</span><span class="nw">ゆわからのご連絡にだけ使います。</span></p>
 
       <label class="agree">
         <input type="checkbox" id="agree" required>
@@ -179,8 +233,9 @@
     <div class="eyebrow">THANK YOU</div>
     <p class="catch">ご登録、<br>ありがとうございます。</p>
     <span class="flourish"></span>
-    <p>確認のメールをお送りしました。<br>届いていない場合は、迷惑メールフォルダもご確認ください。</p>
-    <p>第1期の募集が始まったら、いちばん先にお知らせします。<br>あなたの物語の続きに、お会いできるのを楽しみにしています。</p>
+    <p><span class="nw">確認のメールをお送りしました。</span><span class="nw">届いていない場合は、</span><span class="nw">迷惑メールフォルダも</span><span class="nw">ご確認ください。</span></p>
+    <p><span class="nw">第1期の募集日程や詳しい内容は、</span><span class="nw">このメールアドレスへ</span><span class="nw">優先してお届けします。</span></p>
+    <p><span class="nw">あなたの物語の続きに</span><span class="nw">お会いできるのを、</span><span class="nw">楽しみにしています。</span></p>
     <p style="text-align:right;font-family:var(--serif);color:var(--ink)">ゆわ</p>
   </section>
 
