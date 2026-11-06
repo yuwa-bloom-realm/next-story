@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>NEXT STORY 第1期 先行案内｜Yuwa Entertainment</title>
+<meta name="description" content="私の人生、まだ続きがあった。あなたの人生を1冊の絵本に。その続きを、あなた自身が生き始める2ヶ月。NEXT STORY 第1期の先行案内です。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:light only;
+    --bg:#FBF6EF;
+    --paper:#FFFDF9;
+    --ink:#3B2F2A;
+    --ink-soft:#7A6A60;
+    --rose:#B5656B;
+    --rose-soft:#F3DCDA;
+    --gold:#B8925A;
+    --line:#E8DCCD;
+    --serif:'Shippori Mincho',serif;
+    --sans:'Noto Sans JP',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{background:var(--bg)}
+  body{
+    font-family:var(--sans);
+    font-weight:300;
+    color:var(--ink);
+    line-height:2;
+    -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(243,220,218,.75), transparent 42%),
+      radial-gradient(circle at 92% 22%, rgba(236,214,170,.45), transparent 40%),
+      radial-gradient(circle at 20% 92%, rgba(214,226,206,.45), transparent 42%),
+      var(--bg);
+    min-height:100vh;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:56px 22px 72px}
+
+  header{text-align:center;margin-bottom:36px}
+  .eyebrow{font-family:var(--serif);font-size:13px;letter-spacing:.3em;color:var(--gold)}
+  h1{
+    font-family:var(--serif);font-weight:500;
+    font-size:40px;letter-spacing:.06em;line-height:1.3;margin:10px 0 6px;
+  }
+  .sub{font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:var(--ink-soft)}
+  .catch{
+    font-family:var(--serif);font-size:21px;line-height:1.9;
+    margin:34px 0 8px;letter-spacing:.06em;
+  }
+  .flourish{display:block;width:120px;height:1px;margin:22px auto;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .lead{font-size:15px;color:var(--ink-soft);text-align:left}
+  .lead p+p{margin-top:14px}
+  .lead strong{color:var(--ink);font-weight:500}
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:30px 22px;
+    box-shadow:0 10px 30px rgba(120,90,70,.08);
+  }
+  .card h2{font-family:var(--serif);font-weight:500;font-size:19px;text-align:center;margin-bottom:22px;letter-spacing:.08em}
+
+  .field{margin-bottom:24px}
+  label.q{display:block;font-size:15px;font-weight:400;margin-bottom:8px}
+  .req,.opt{
+    display:inline-block;font-size:11px;line-height:1;padding:4px 8px;border-radius:20px;margin-left:8px;vertical-align:2px
+  }
+  .req{background:var(--rose);color:#fff}
+  .opt{background:#EFE7DD;color:var(--ink-soft)}
+  .hint{font-size:13px;color:var(--ink-soft);margin:-2px 0 10px;line-height:1.8}
+  input[type=text],input[type=email],textarea{
+    width:100%;font:inherit;font-size:16px;color:var(--ink);
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;outline:none;transition:border-color .2s, box-shadow .2s;
+  }
+  textarea{min-height:140px;resize:vertical;line-height:1.8}
+  input:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 0 3px var(--rose-soft)}
+  .radios{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .radios label{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    border:1px solid var(--line);border-radius:10px;padding:10px 6px;
+    font-size:15px;background:#fff;cursor:pointer;transition:all .2s;
+  }
+  .radios input{position:absolute;opacity:0;pointer-events:none}
+  .radios label:has(input:checked){border-color:var(--rose);background:var(--rose-soft);font-weight:400}
+
+  .note{font-size:13px;color:var(--ink-soft);line-height:1.9;margin:6px 0 22px}
+  .agree{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-bottom:22px}
+  .agree input{margin-top:7px;width:18px;height:18px;accent-color:var(--rose);flex:none}
+
+  button{
+    width:100%;font-family:var(--serif);font-size:17px;letter-spacing:.12em;
+    color:#fff;background:linear-gradient(135deg,#C07278,#A9585E);
+    border:none;border-radius:40px;padding:16px;cursor:pointer;
+    box-shadow:0 8px 20px rgba(169,88,94,.25);transition:transform .15s, opacity .2s;
+  }
+  button:active{transform:scale(.98)}
+  button[disabled]{opacity:.6;cursor:default}
+  .error{color:var(--rose);font-size:13px;margin-top:10px;text-align:center;display:none}
+
+  #done{display:none;text-align:center}
+  #done .catch{margin-top:6px}
+  #done p{font-size:15px;color:var(--ink-soft);text-align:left;margin-top:14px}
+
+  footer{text-align:center;margin-top:40px;font-size:12px;color:var(--ink-soft);letter-spacing:.1em}
+  footer .brand{font-family:var(--serif);font-size:14px;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">YUWA ENTERTAINMENT</div>
+    <h1>NEXT STORY</h1>
+    <div class="sub">第1期　先行案内</div>
+
+    <p class="catch">私の人生、<br>まだ続きがあった。</p>
+    <span class="flourish"></span>
+
+    <div class="lead">
+      <p>あなたの人生を、<strong>1冊の絵本</strong>に。<br>そして、その続きを、<strong>あなた自身が生き始める</strong>2ヶ月。</p>
+      <p>NEXT STORY 第1期（2〜3名）の募集を、ここに登録してくださった方へ<strong>先にお知らせ</strong>します。</p>
+      <p>登録しても、申し込む義務はありません。<br>どうぞ気軽に。</p>
+    </div>
+  </header>
+
+  <section class="card" id="formCard">
+    <h2>先行案内を受け取る</h2>
+    <form id="form" novalidate>
+      <div class="field">
+        <label class="q" for="name">お名前<span class="req">必須</span></label>
+        <p class="hint">ニックネームでも大丈夫です</p>
+        <input type="text" id="name" name="name" autocomplete="name" required>
+      </div>
+
+      <div class="field">
+        <label class="q" for="email">ご案内を受け取るメールアドレス<span class="req">必須</span></label>
+        <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+      </div>
+
+      <div class="field">
+        <span class="q">年代<span class="req">必須</span></span>
+        <div class="radios" role="radiogroup">
+          <label><input type="radio" name="age" value="40代未満" required>40代未満</label>
+          <label><input type="radio" name="age" value="40代">40代</label>
+          <label><input type="radio" name="age" value="50代">50代</label>
+          <label><input type="radio" name="age" value="60代">60代</label>
+          <label><input type="radio" name="age" value="70代以上">70代以上</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="q" for="message">「本当は、まだやってみたいことがある」<span class="opt">任意</span></label>
+        <p class="hint">もしよければ、今の気持ちを聞かせてください。<br>ひとことでも、うまくまとまっていなくても大丈夫です。</p>
+        <textarea id="message" name="message"></textarea>
+      </div>
+
+      <p class="note">いただいた内容は、NEXT STORY のご案内と、ゆわからのご連絡にだけ使います。</p>
+
+      <label class="agree">
+        <input type="checkbox" id="agree" required>
+        <span>上記に同意して、先行案内を受け取ります</span>
+      </label>
+
+      <!-- ロボット対策（人には見えない欄） -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+
+      <button type="submit" id="submit">先行案内を受け取る</button>
+      <p class="error" id="error"></p>
+    </form>
+  </section>
+
+  <section class="card" id="done" aria-live="polite">
+    <div class="eyebrow">THANK YOU</div>
+    <p class="catch">ご登録、<br>ありがとうございます。</p>
+    <span class="flourish"></span>
+    <p>確認のメールをお送りしました。<br>届いていない場合は、迷惑メールフォルダもご確認ください。</p>
+    <p>第1期の募集が始まったら、いちばん先にお知らせします。<br>あなたの物語の続きに、お会いできるのを楽しみにしています。</p>
+    <p style="text-align:right;font-family:var(--serif);color:var(--ink)">ゆわ</p>
+  </section>
+
+  <footer>
+    <div class="brand">Yuwa Entertainment</div>
+    <div>© 桜庭ゆわ</div>
+  </footer>
+</div>
+
+<script>
+  // ★ GASをデプロイしたら、ここにウェブアプリのURLを貼る ★
+  const GAS_URL = 'PASTE_GAS_WEB_APP_URL_HERE';
+
+  const form = document.getElementById('form');
+  const btn = document.getElementById('submit');
+  const err = document.getElementById('error');
+
+  function showError(msg){ err.textContent = msg; err.style.display = 'block'; }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.style.display = 'none';
+
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const age = (form.querySelector('input[name=age]:checked') || {}).value;
+    const agree = document.getElementById('agree').checked;
+
+    if (!name) return showError('お名前を入力してください');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('メールアドレスを確認してください');
+    if (!age) return showError('年代を選んでください');
+    if (!agree) return showError('同意のチェックをお願いします');
+
+    btn.disabled = true;
+    btn.textContent = '送信中…';
+
+    const data = new URLSearchParams({
+      name, email, age,
+      message: form.message.value.trim(),
+      website: form.website.value,
+      page: location.href
+    });
+
+    try {
+      await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: data });
+      document.getElementById('formCard').style.display = 'none';
+      document.getElementById('done').style.display = 'block';
+      window.scrollTo({ top: document.getElementById('done').offsetTop - 20, behavior: 'smooth' });
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = '先行案内を受け取る';
+      showError('送信できませんでした。電波のよい場所で、もう一度お試しください。');
+    }
+  });
+</script>
+</body>
+</html>
