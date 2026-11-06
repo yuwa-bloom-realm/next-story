@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light only">
-<title>NEXT STORY 第1期 先行案内｜Yuwa Entertainment</title>
-<meta name="description" content="私の人生、まだ続きがあった。これまで歩んできた人生を、世界に一冊だけの絵本に。そしてその続きを、あなた自身が生きていく。NEXT STORY 第1期の先行案内です。">
+<title>NEXT STORY 無料体験会｜Yuwa Entertainment</title>
+<meta name="description" content="私の人生、まだ続きがあった。これまでの人生を一冊の絵本にし、その先の新しい人生を歩き始めるプログラム NEXT STORY。物語の朗読もお届けする、60分の無料オンライン体験会のお申し込みページです。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
@@ -24,12 +24,9 @@
     --sans:'Noto Sans JP',sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html{background:var(--bg)}
+  html{background:var(--bg);scroll-behavior:smooth}
   body{
-    font-family:var(--sans);
-    font-weight:300;
-    color:var(--ink);
-    line-height:2;
+    font-family:var(--sans);font-weight:300;color:var(--ink);line-height:2;
     -webkit-font-smoothing:antialiased;
     background:
       radial-gradient(circle at 12% 8%, rgba(243,220,218,.75), transparent 42%),
@@ -40,88 +37,85 @@
   }
   .wrap{max-width:560px;margin:0 auto;padding:56px 22px 72px}
 
-  header{text-align:center;margin-bottom:36px}
-  .eyebrow{font-family:var(--serif);font-size:13px;letter-spacing:.3em;color:var(--gold)}
-  h1{
-    font-family:var(--serif);font-weight:500;
-    font-size:40px;letter-spacing:.06em;line-height:1.3;margin:10px 0 6px;
-  }
-  .sub{font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:var(--ink-soft)}
-  .catch{
-    font-family:var(--serif);font-size:21px;line-height:1.9;
-    margin:34px 0 8px;letter-spacing:.06em;
-  }
-  .flourish{display:block;width:120px;height:1px;margin:22px auto;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
   /* 日本語の不自然な折り返しを防ぐ：意味のかたまりごとに改行させる */
   .nw{display:inline-block}
-  h1,.catch,.voice,.to-you,.info-title{text-wrap:balance}
+  h1,.catch,.voice,.to-you{text-wrap:balance}
 
-  .voice{font-family:var(--serif);font-size:17px;line-height:2;letter-spacing:.04em;margin-top:6px}
-  .voice p+p{margin-top:4px}
-  .to-you{font-family:var(--serif);font-size:16px;color:var(--rose);margin:18px 0 22px;letter-spacing:.1em}
+  header{text-align:center;margin-bottom:34px}
+  .eyebrow{font-family:var(--serif);font-size:13px;letter-spacing:.3em;color:var(--gold)}
+  h1{font-family:var(--serif);font-weight:500;font-size:40px;letter-spacing:.06em;line-height:1.3;margin:10px 0 6px}
+  .sub{
+    display:inline-block;font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:#fff;
+    background:var(--rose);border-radius:30px;padding:2px 16px;margin-top:4px;
+  }
+  .catch{font-family:var(--serif);font-size:22px;line-height:1.9;margin:32px 0 8px;letter-spacing:.06em}
+  .flourish{display:block;width:120px;height:1px;margin:22px auto;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
 
+  .voice{font-family:var(--serif);font-size:17px;line-height:2;letter-spacing:.04em}
+  .to-you{font-family:var(--serif);font-size:15px;color:var(--rose);margin:10px 0 24px;letter-spacing:.06em}
   .lead{font-size:15px;color:var(--ink-soft);text-align:center;line-height:2.05}
   .lead p+p{margin-top:16px}
   .lead strong{color:var(--ink);font-weight:500}
-
-  .info{
-    text-align:center;margin:0 0 30px;padding:22px 18px;
-    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-    font-size:15px;color:var(--ink-soft);line-height:2;
-  }
-  .info-title{font-family:var(--serif);font-size:19px;color:var(--ink);margin:2px 0 8px;letter-spacing:.08em}
-  .info strong{color:var(--ink);font-weight:500}
-  .info .small{font-size:13px;margin-top:8px}
-
-  .after{
-    background:#FBF3EE;border-radius:12px;padding:16px 16px 14px;margin:4px 0 18px;
-    font-size:14px;color:var(--ink-soft);line-height:1.9;
-  }
-  .after p+p{margin-top:6px}
-  .after-title{font-family:var(--serif);font-size:15px;color:var(--ink);margin-bottom:4px}
+  .lead .invite{font-family:var(--serif);font-size:17px;color:var(--ink);line-height:1.95}
 
   .card{
-    background:var(--paper);
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:30px 22px;
-    box-shadow:0 10px 30px rgba(120,90,70,.08);
+    background:var(--paper);border:1px solid var(--line);border-radius:18px;
+    padding:28px 22px;box-shadow:0 10px 30px rgba(120,90,70,.08);margin-bottom:28px;
   }
-  .card h2{font-family:var(--serif);font-weight:500;font-size:19px;text-align:center;margin-bottom:22px;letter-spacing:.08em}
+  .card h2{font-family:var(--serif);font-weight:500;font-size:19px;text-align:center;margin-bottom:18px;letter-spacing:.08em}
 
-  .field{margin-bottom:24px}
-  label.q{display:block;font-size:15px;font-weight:400;margin-bottom:8px}
-  .req,.opt{
-    display:inline-block;font-size:11px;line-height:1;padding:4px 8px;border-radius:20px;margin-left:8px;vertical-align:2px
+  /* 開催情報 */
+  .facts{list-style:none}
+  .facts li{display:flex;gap:14px;padding:12px 2px;border-bottom:1px dashed var(--line);font-size:15px}
+  .facts li:last-child{border-bottom:none}
+  .facts .k{flex:none;width:6.2em;color:var(--ink-soft);font-size:14px}
+  .facts .v{font-weight:400}
+  .facts .v small{display:block;font-weight:300;font-size:13px;color:var(--ink-soft);line-height:1.8}
+  .dates{list-style:none;margin-top:2px}
+  .dates li{border:none;padding:2px 0;display:block;font-size:15px}
+
+  .cta{
+    display:block;text-align:center;text-decoration:none;
+    font-family:var(--serif);font-size:17px;letter-spacing:.12em;color:#fff;
+    background:linear-gradient(135deg,#C07278,#A9585E);border:none;border-radius:40px;
+    padding:16px;margin-top:22px;box-shadow:0 8px 20px rgba(169,88,94,.25);
   }
+
+  /* フォーム */
+  .field{margin-bottom:24px}
+  label.q,span.q{display:block;font-size:15px;font-weight:400;margin-bottom:8px}
+  .req,.opt{display:inline-block;font-size:11px;line-height:1;padding:4px 8px;border-radius:20px;margin-left:8px;vertical-align:2px}
   .req{background:var(--rose);color:#fff}
   .opt{background:#EFE7DD;color:var(--ink-soft)}
   .hint{font-size:13px;color:var(--ink-soft);margin:-2px 0 10px;line-height:1.8}
   input[type=text],input[type=email],textarea{
-    width:100%;font:inherit;font-size:16px;color:var(--ink);
-    background:#fff;border:1px solid var(--line);border-radius:10px;
-    padding:12px 14px;outline:none;transition:border-color .2s, box-shadow .2s;
+    width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:12px 14px;outline:none;
+    transition:border-color .2s, box-shadow .2s;
   }
-  textarea{min-height:140px;resize:vertical;line-height:1.8}
+  textarea{min-height:130px;resize:vertical;line-height:1.8}
   input:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 0 3px var(--rose-soft)}
-  .radios{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
-  .radios label{
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    border:1px solid var(--line);border-radius:10px;padding:10px 6px;
-    font-size:15px;background:#fff;cursor:pointer;transition:all .2s;
+  .choices{display:grid;gap:8px}
+  .choices label{
+    display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;font-size:15px;background:#fff;cursor:pointer;transition:all .2s;line-height:1.6;
   }
-  .radios input{position:absolute;opacity:0;pointer-events:none}
-  .radios label:has(input:checked){border-color:var(--rose);background:var(--rose-soft);font-weight:400}
+  .choices input{width:18px;height:18px;accent-color:var(--rose);flex:none}
+  .choices label:has(input:checked){border-color:var(--rose);background:var(--rose-soft);font-weight:400}
 
-  .note{font-size:13px;color:var(--ink-soft);line-height:1.9;margin:6px 0 22px}
+  .after{background:#FBF3EE;border-radius:12px;padding:16px;margin:4px 0 18px;font-size:14px;color:var(--ink-soft);line-height:1.9}
+  .after-title{font-family:var(--serif);font-size:15px;color:var(--ink);margin-bottom:6px}
+  .after ol{padding-left:1.4em}
+  .after li+li{margin-top:4px}
+
+  .note{font-size:13px;color:var(--ink-soft);line-height:1.9;margin:6px 0 18px}
   .agree{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-bottom:22px}
   .agree input{margin-top:7px;width:18px;height:18px;accent-color:var(--rose);flex:none}
 
   button{
-    width:100%;font-family:var(--serif);font-size:17px;letter-spacing:.12em;
-    color:#fff;background:linear-gradient(135deg,#C07278,#A9585E);
-    border:none;border-radius:40px;padding:16px;cursor:pointer;
-    box-shadow:0 8px 20px rgba(169,88,94,.25);transition:transform .15s, opacity .2s;
+    width:100%;font-family:var(--serif);font-size:17px;letter-spacing:.12em;color:#fff;
+    background:linear-gradient(135deg,#C07278,#A9585E);border:none;border-radius:40px;
+    padding:16px;cursor:pointer;box-shadow:0 8px 20px rgba(169,88,94,.25);transition:transform .15s, opacity .2s;
   }
   button:active{transform:scale(.98)}
   button[disabled]{opacity:.6;cursor:default}
@@ -130,20 +124,25 @@
   #done{display:none;text-align:center}
   #done .catch{margin-top:6px}
   #done p{font-size:15px;color:var(--ink-soft);margin-top:14px}
+  .chosen{
+    display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;
+    background:var(--rose-soft);color:var(--ink);font-weight:400;font-size:16px;
+  }
 
-  /* スマホの細い画面 */
+  footer{text-align:center;margin-top:36px;font-size:12px;color:var(--ink-soft);letter-spacing:.1em}
+  footer .brand{font-family:var(--serif);font-size:14px;color:var(--ink)}
+
   @media (max-width:380px){
     .wrap{padding:44px 16px 60px}
     h1{font-size:34px}
-    .catch{font-size:19px}
+    .catch{font-size:20px}
     .voice{font-size:15.5px}
-    .lead,.info{font-size:14px}
-    .card{padding:26px 16px}
-    label.q{font-size:14.5px}
+    .lead{font-size:14px}
+    .lead .invite{font-size:16px}
+    .card{padding:24px 16px}
+    .facts .k{width:5.6em}
+    label.q,span.q{font-size:14.5px}
   }
-
-  footer{text-align:center;margin-top:40px;font-size:12px;color:var(--ink-soft);letter-spacing:.1em}
-  footer .brand{font-family:var(--serif);font-size:14px;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -152,33 +151,37 @@
   <header>
     <div class="eyebrow">YUWA ENTERTAINMENT</div>
     <h1>NEXT STORY</h1>
-    <div class="sub">第1期　先行案内</div>
+    <div class="sub">無料体験会</div>
 
     <p class="catch">私の人生、<br>まだ続きがあった。</p>
     <span class="flourish"></span>
 
-    <div class="voice">
-      <p><span class="nw">「誰かのために、</span><span class="nw">一生懸命</span><span class="nw">生きてきた。」</span></p>
-      <p><span class="nw">「でも、</span><span class="nw">私の人生って、</span><span class="nw">これだけだっけ？」</span></p>
-    </div>
-    <p class="to-you">そんなあなたへ。</p>
+    <p class="voice"><span class="nw">「今も幸せ。</span><span class="nw">でも、私の人生って、</span><span class="nw">これだけだっけ？」</span></p>
+    <p class="to-you"><span class="nw">そんなふうに感じたことは</span><span class="nw">ありませんか？</span></p>
 
     <div class="lead">
-      <p><span class="nw">これまで歩んできた人生を、</span><span class="nw"><strong>世界に一冊だけの絵本</strong>に。</span></p>
-      <p><span class="nw">そして、その物語の続きを、</span><span class="nw">今度は<strong>あなた自身が</strong></span><span class="nw">生きていく。</span></p>
-      <p><span class="nw">NEXT STORYは、</span><span class="nw">過去を振り返るだけで</span><span class="nw">終わらない、</span><span class="nw">これからの人生を動かす</span><span class="nw">物語体験です。</span></p>
+      <p><span class="nw">家族のため、</span><span class="nw">誰かのために</span><span class="nw">歩いてきた人生。</span></p>
+      <p><span class="nw">でも、あなたの物語は、</span><span class="nw"><strong>まだ終わっていません。</strong></span></p>
+      <p><span class="nw">NEXT STORYは、</span><span class="nw">これまでの人生を</span><span class="nw"><strong>一冊の絵本</strong>にし、</span><span class="nw">その先の新しい人生を</span><span class="nw">歩き始めるプログラムです。</span></p>
+      <p class="invite"><span class="nw">まずは60分の無料体験会で、</span><span class="nw">その世界を少しだけ</span><span class="nw">体験してみませんか？</span></p>
+      <p><span class="nw">物語の<strong>朗読</strong>も</span><span class="nw">お届けします。</span></p>
     </div>
   </header>
 
-  <section class="info">
-    <div class="eyebrow">FIRST EDITION</div>
-    <p class="info-title">第1期（2〜3名）</p>
-    <p><span class="nw">NEXT STORY 第1期の募集情報を、</span><span class="nw">先行登録してくださった方へ</span><span class="nw"><strong>優先してお届け</strong>します。</span></p>
-    <p class="small"><span class="nw">登録は無料。</span><span class="nw">登録したからといって、</span><span class="nw">申し込む必要はありません。</span></p>
+  <section class="card" aria-labelledby="info-h">
+    <h2 id="info-h">開催情報</h2>
+    <ul class="facts">
+      <li><span class="k">参加費</span><span class="v">無料</span></li>
+      <li><span class="k">所要時間</span><span class="v">約60分</span></li>
+      <li><span class="k">開催方法</span><span class="v">オンライン（Zoom）<small>お申し込み後、参加方法をメールでお送りします</small></span></li>
+      <li><span class="k">定員</span><span class="v">少人数制</span></li>
+      <li><span class="k">開催日時</span><span class="v"><ul class="dates" id="dateList"></ul></span></li>
+    </ul>
+    <a class="cta" href="#apply">無料体験会に申し込む</a>
   </section>
 
-  <section class="card" id="formCard">
-    <h2>先行案内を受け取る</h2>
+  <section class="card" id="apply" aria-labelledby="form-h">
+    <h2 id="form-h">お申し込み</h2>
     <form id="form" novalidate>
       <div class="field">
         <label class="q" for="name">お名前<span class="req">必須</span></label>
@@ -187,55 +190,54 @@
       </div>
 
       <div class="field">
-        <label class="q" for="email">ご案内を受け取るメールアドレス<span class="req">必須</span></label>
+        <label class="q" for="email">メールアドレス<span class="req">必須</span></label>
+        <p class="hint">参加方法のご案内をお送りします</p>
         <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
       </div>
 
       <div class="field">
-        <span class="q">年代<span class="req">必須</span></span>
-        <div class="radios" role="radiogroup">
-          <label><input type="radio" name="age" value="40代未満" required>40代未満</label>
-          <label><input type="radio" name="age" value="40代">40代</label>
-          <label><input type="radio" name="age" value="50代">50代</label>
-          <label><input type="radio" name="age" value="60代">60代</label>
-          <label><input type="radio" name="age" value="70代以上">70代以上</label>
-        </div>
+        <span class="q">ご希望の日時<span class="req">必須</span></span>
+        <div class="choices" id="dateChoices" role="radiogroup"></div>
       </div>
 
       <div class="field">
-        <label class="q" for="message"><span class="nw">もし、これからの人生に</span><span class="nw">もうひとつ物語があるとしたら、</span><span class="nw">どんなことを</span><span class="nw">してみたいですか？</span><span class="opt">任意</span></label>
-        <p class="hint"><span class="nw">まだ決まっていなくても大丈夫。</span><span class="nw">今の気持ちを自由に</span><span class="nw">聞かせてください。</span></p>
+        <label class="q" for="message">今の気持ち<span class="opt">任意</span></label>
+        <p class="hint"><span class="nw">体験会に期待していることや、</span><span class="nw">今感じていることを、</span><span class="nw">自由に書いてください。</span></p>
         <textarea id="message" name="message"></textarea>
       </div>
 
       <div class="after">
-        <p class="after-title">ご登録のあとは</p>
-        <p><span class="nw">ご登録いただいたメールアドレスへ、</span><span class="nw">第1期の募集日程や</span><span class="nw">詳しい内容を</span><span class="nw">優先してお届けします。</span></p>
-        <p><span class="nw">登録後すぐに、</span><span class="nw">確認のメールが届きます。</span></p>
+        <p class="after-title">お申し込みのあとは</p>
+        <ol>
+          <li><span class="nw">この画面に「受付完了」が</span><span class="nw">表示されます</span></li>
+          <li><span class="nw">すぐに、ご入力のメールアドレスへ</span><span class="nw"><strong>参加日時とZoomの参加方法</strong>を</span><span class="nw">お送りします</span></li>
+          <li><span class="nw">当日、時間になったら</span><span class="nw">Zoomから参加してください</span></li>
+        </ol>
       </div>
 
-      <p class="note"><span class="nw">いただいた内容は、</span><span class="nw">NEXT STORY のご案内と、</span><span class="nw">ゆわからのご連絡にだけ使います。</span></p>
+      <p class="note"><span class="nw">いただいた内容は、</span><span class="nw">体験会と NEXT STORY のご案内、</span><span class="nw">ゆわからのご連絡にだけ使います。</span></p>
 
       <label class="agree">
         <input type="checkbox" id="agree" required>
-        <span>上記に同意して、先行案内を受け取ります</span>
+        <span>上記に同意して申し込みます</span>
       </label>
 
       <!-- ロボット対策（人には見えない欄） -->
       <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 
-      <button type="submit" id="submit">先行案内を受け取る</button>
+      <button type="submit" id="submit">無料体験会に申し込む</button>
       <p class="error" id="error"></p>
     </form>
   </section>
 
   <section class="card" id="done" aria-live="polite">
     <div class="eyebrow">THANK YOU</div>
-    <p class="catch">ご登録、<br>ありがとうございます。</p>
+    <p class="catch">お申し込みを<br>受け付けました。</p>
+    <div class="chosen" id="chosenDate"></div>
     <span class="flourish"></span>
-    <p><span class="nw">確認のメールをお送りしました。</span><span class="nw">届いていない場合は、</span><span class="nw">迷惑メールフォルダも</span><span class="nw">ご確認ください。</span></p>
-    <p><span class="nw">第1期の募集日程や詳しい内容は、</span><span class="nw">このメールアドレスへ</span><span class="nw">優先してお届けします。</span></p>
-    <p><span class="nw">あなたの物語の続きに</span><span class="nw">お会いできるのを、</span><span class="nw">楽しみにしています。</span></p>
+    <p><span class="nw">ご入力のメールアドレスへ、</span><span class="nw">参加日時とZoomの参加方法を</span><span class="nw">お送りしました。</span></p>
+    <p><span class="nw">届いていない場合は、</span><span class="nw">迷惑メールフォルダも</span><span class="nw">ご確認ください。</span></p>
+    <p><span class="nw">当日、あなたにお会いできるのを</span><span class="nw">楽しみにしています。</span></p>
     <p style="text-align:right;font-family:var(--serif);color:var(--ink)">ゆわ</p>
   </section>
 
@@ -246,13 +248,30 @@
 </div>
 
 <script>
+  // ★ 開催日時：確定したらここを書きかえる（GASの DATES と同じ文字にすること）★
+  const DATES = [
+    '11月◯日（◯）20:00〜21:00',
+    '11月◯日（◯）10:00〜11:00',
+  ];
+
   // ★ GASをデプロイしたら、ここにウェブアプリのURLを貼る ★
   const GAS_URL = 'PASTE_GAS_WEB_APP_URL_HERE';
+
+  // 日時を「開催情報」と「フォームの選択肢」に表示
+  const list = document.getElementById('dateList');
+  const choices = document.getElementById('dateChoices');
+  DATES.forEach((d, i) => {
+    const li = document.createElement('li'); li.textContent = d; list.appendChild(li);
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'radio'; input.name = 'date'; input.value = d; if (i === 0) input.required = true;
+    label.appendChild(input); label.appendChild(document.createTextNode(d));
+    choices.appendChild(label);
+  });
 
   const form = document.getElementById('form');
   const btn = document.getElementById('submit');
   const err = document.getElementById('error');
-
   function showError(msg){ err.textContent = msg; err.style.display = 'block'; }
 
   form.addEventListener('submit', async (e) => {
@@ -261,19 +280,19 @@
 
     const name = form.name.value.trim();
     const email = form.email.value.trim();
-    const age = (form.querySelector('input[name=age]:checked') || {}).value;
+    const date = (form.querySelector('input[name=date]:checked') || {}).value;
     const agree = document.getElementById('agree').checked;
 
     if (!name) return showError('お名前を入力してください');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('メールアドレスを確認してください');
-    if (!age) return showError('年代を選んでください');
+    if (!date) return showError('ご希望の日時を選んでください');
     if (!agree) return showError('同意のチェックをお願いします');
 
     btn.disabled = true;
     btn.textContent = '送信中…';
 
     const data = new URLSearchParams({
-      name, email, age,
+      name, email, date,
       message: form.message.value.trim(),
       website: form.website.value,
       page: location.href
@@ -281,12 +300,14 @@
 
     try {
       await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: data });
-      document.getElementById('formCard').style.display = 'none';
-      document.getElementById('done').style.display = 'block';
-      window.scrollTo({ top: document.getElementById('done').offsetTop - 20, behavior: 'smooth' });
+      document.getElementById('apply').style.display = 'none';
+      document.getElementById('chosenDate').textContent = date;
+      const done = document.getElementById('done');
+      done.style.display = 'block';
+      window.scrollTo({ top: done.offsetTop - 20, behavior: 'smooth' });
     } catch (e) {
       btn.disabled = false;
-      btn.textContent = '先行案内を受け取る';
+      btn.textContent = '無料体験会に申し込む';
       showError('送信できませんでした。電波のよい場所で、もう一度お試しください。');
     }
   });
