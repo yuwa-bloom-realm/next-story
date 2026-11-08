@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXT STORY</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>NEXT STORY</h1>
+  <div id="loading" class="note">ひらいています…</div>
+  <div id="nokey" class="hidden box">このページは、ゆわからお送りした招待リンクからひらいてください。</div>
+
+  <div id="app" class="hidden">
+    <h2 id="hello"></h2>
+
+    <div class="box note">
+      ・答えは、書いても、話しても（キーボードのマイクで音声入力できます）大丈夫です。<br>
+      ・答えにくい問いは、とばしてください。一言だけでも十分です。<br>
+      ・「1日目」「2日目」は、ゆっくり進むための目安です。期限はありません。<br>
+      ・書いた言葉は自動で保存されます。途中でとじても、続きから書けます。
+    </div>
+
+    <!-- ゆわとの往復（メッセージがあるときだけ表示） -->
+    <div id="threadWrap" class="hidden">
+      <h3>ゆわとの往復</h3>
+      <div id="thread"></div>
+      <textarea id="replyText" placeholder="ここにお返事を（音声入力もできます）"></textarea>
+      <button id="replyBtn">ゆわに送る</button>
+    </div>
+
+    <!-- 章ごとの質問 -->
+    <div id="chapters"></div>
+  </div>
+</div>
+<div id="status" class="status hidden"></div>
+
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script>
+(function () {
+  var key = new URLSearchParams(location.search).get('k');
+  var LS = 'ns_letter_' + key;
+  var state = null;      // サーバーの状態
+  var dirty = {};        // まだサーバーに届いていない答え
+  var timer = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  if (!key) { $('loading').classList.add('hidden'); $('nokey').classList.remove('hidden'); return; }
+
+  function api(payload) {
+    payload.key = key;
+    return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); });
+  }
+
+  function status(t) {
+    var s = $('status');
+    s.textContent = t;
+    s.classList.remove('hidden');
+  }
+
+  function fmt(ms) {
+    var d = new Date(ms);
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+
+  function local() {
+    try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch (e) { return {}; }
+  }
+  function setLocal(qid, v) {
+    try { var o = local(); o[qid] = v; localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {}
+  }
+
+  function grow(ta) {
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(84, ta.scrollHeight + 2) + 'px';
+  }
+
+  // ---------- 保存 ----------
+  function queueSave() {
+    clearTimeout(timer);
+    timer = setTimeout(flush, 2500);
+  }
+
+  function flush() {
+    clearTimeout(timer);
+    var ids = Object.keys(dirty);
+    if (!ids.length) return Promise.resolve();
+    var send = {};
+    ids.forEach(function (id) { send[id] = dirty[id]; });
+    status('保存しています…');
+    return api({ action: 'saveAnswers', answers: send }).then(function (res) {
+      if (!res.ok) throw new Error(res.error);
+      ids.forEach(function (id) { if (dirty[id] === send[id]) delete dirty[id]; });
+      state = res.state;
+      status('保存しました');
+    }).catch(function () {
+      status('この端末に保存しています（通信がもどったら届きます）');
+    });
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flush();
+  });
+  window.addEventListener('online', flush);
+
+  // ---------- 表示 ----------
+  function buildChapters() {
+    var root = $('chapters');
+    var loc = local();
+    window.CHAPTERS.forEach(function (ch) {
+      var sec = document.createElement('section');
+      sec.innerHTML = '<h3 style="font-size:20px;color:#3a3330;border:none">' + ch.name + '「' + ch.title + '」</h3>';
+
+      var all = [];
+      ch.days.forEach(function (day) {
+        var h = document.createElement('h3');
+        h.textContent = day.label + '（目安）｜' + day.title;
+        sec.appendChild(h);
+        day.qs.forEach(function (q) { all.push(q); sec.appendChild(qBlock(q, loc)); });
+      });
+      if (ch.closing) {
+        var h2 = document.createElement('h3');
+        h2.textContent = '締め';
+        sec.appendChild(h2);
+        sec.appendChild(qBlock(ch.closing, loc));
+      }
+
+      // 章を届ける
+      var sb = document.createElement('div');
+      sb.className = 'box';
+      sb.innerHTML =
+        '<p class="note" style="margin-top:0">途中でも、空欄があっても届けられます。届けたあとも書き足せます。</p>' +
+        '<button class="main" id="submit_' + ch.id + '">' + ch.name + 'をゆわに届ける</button>' +
+        '<div class="note" id="submitted_' + ch.id + '"></div>';
+      sec.appendChild(sb);
+
+      // 章末の下書き
+      var dr = document.createElement('div');
+      dr.id = 'draftWrap_' + ch.id;
+      dr.className = 'hidden';
+      dr.innerHTML =
+        '<h3>あなたの' + ch.name + '（下書き）</h3>' +
+        '<p class="note">あなたの言葉から、ゆわが編んだ下書きです。完成品ではありません。<br>「ここは違う」「本当はこうだった」があれば、あなたの言葉で教えてください。</p>' +
+        '<div class="box pre" id="draft_' + ch.id + '"></div>' +
+        '<div id="revs_' + ch.id + '"></div>' +
+        '<textarea id="revText_' + ch.id + '" placeholder="直したいところ、書き足したいこと"></textarea>' +
+        '<button id="revBtn_' + ch.id + '">ゆわに送る</button>';
+      sec.appendChild(dr);
+
+      root.appendChild(sec);
+
+      $('submit_' + ch.id).onclick = function () {
+        var btn = this;
+        btn.disabled = true;
+        flush().then(function () {
+          return api({ action: 'submit', ch: ch.id });
+        }).then(function (res) {
+          btn.disabled = false;
+          if (!res.ok) throw new Error();
+          state = res.state;
+          render();
+          status('ゆわに届きました。ありがとうございます。');
+        }).catch(function () { btn.disabled = false; status('うまく届きませんでした。少し時間をおいてもう一度どうぞ。'); });
+      };
+
+      $('revBtn_' + ch.id).onclick = function () {
+        var ta = $('revText_' + ch.id);
+        var t = ta.value.trim();
+        if (!t) return;
+        var btn = this;
+        btn.disabled = true;
+        api({ action: 'revise', ch: ch.id, text: t }).then(function (res) {
+          btn.disabled = false;
+          if (!res.ok) throw new Error();
+          ta.value = '';
+          state = res.state;
+          render();
+          status('ゆわに届きました');
+        }).catch(function () { btn.disabled = false; status('うまく届きませんでした。もう一度どうぞ。'); });
+      };
+    });
+  }
+
+  function qBlock(q, loc) {
+    var d = document.createElement('div');
+    d.className = 'q';
+    var p = document.createElement('p');
+    p.textContent = q.text;
+    var ta = document.createElement('textarea');
+    ta.id = 'ta_' + q.id;
+
+    // サーバーと端末、新しいほうを使う
+    var sv = state.answers[q.id];
+    var lv = loc[q.id];
+    if (lv && (!sv || (lv.at || 0) > (sv.at || 0))) {
+      ta.value = lv.t;
+      if (!sv || lv.t !== sv.t) dirty[q.id] = lv;
+    } else if (sv) {
+      ta.value = sv.t;
+    }
+
+    ta.addEventListener('input', function () {
+      var v = { t: ta.value, at: Date.now() };
+      dirty[q.id] = v;
+      setLocal(q.id, v);
+      grow(ta);
+      queueSave();
+    });
+    ta.addEventListener('blur', flush);
+
+    d.appendChild(p);
+    d.appendChild(ta);
+    setTimeout(function () { grow(ta); }, 0);
+    return d;
+  }
+
+  function render() {
+    // 往復
+    var th = $('thread');
+    th.innerHTML = '';
+    if (state.thread.length) {
+      $('threadWrap').classList.remove('hidden');
+      state.thread.forEach(function (m) {
+        var div = document.createElement('div');
+        div.className = 'msg ' + (m.from === 'yuwa' ? 'yuwa' : 'me');
+        var w = document.createElement('span');
+        w.className = 'who';
+        w.textContent = (m.from === 'yuwa' ? 'ゆわ' : 'あなた') + '　' + fmt(m.at);
+        div.appendChild(w);
+        div.appendChild(document.createTextNode(m.text));
+        th.appendChild(div);
+      });
+    }
+
+    window.CHAPTERS.forEach(function (ch) {
+      var s = state.submitted[ch.id];
+      $('submitted_' + ch.id).textContent = s ? fmt(s) + ' にゆわへ届けました' : '';
+
+      var dft = state.drafts[ch.id];
+      if (dft && dft.text) {
+        $('draftWrap_' + ch.id).classList.remove('hidden');
+        $('draft_' + ch.id).textContent = dft.text;
+        var rv = $('revs_' + ch.id);
+        rv.innerHTML = '';
+        (state.revisions[ch.id] || []).forEach(function (r) {
+          var div = document.createElement('div');
+          div.className = 'msg me';
+          var w = document.createElement('span');
+          w.className = 'who';
+          w.textContent = 'あなたが送った言葉　' + fmt(r.at);
+          div.appendChild(w);
+          div.appendChild(document.createTextNode(r.text));
+          rv.appendChild(div);
+        });
+      }
+    });
+  }
+
+  $('replyBtn').onclick = function () {
+    var t = $('replyText').value.trim();
+    if (!t) return;
+    var btn = this;
+    btn.disabled = true;
+    api({ action: 'reply', text: t }).then(function (res) {
+      btn.disabled = false;
+      if (!res.ok) throw new Error();
+      $('replyText').value = '';
+      state = res.state;
+      render();
+      status('ゆわに届きました');
+    }).catch(function () { btn.disabled = false; status('うまく届きませんでした。もう一度どうぞ。'); });
+  };
+  $('replyText').addEventListener('input', function () { grow(this); });
+
+  // ---------- 起動 ----------
+  api({ action: 'me' }).then(function (res) {
+    if (!res.ok) throw new Error(res.error);
+    state = res.state;
+    $('hello').textContent = res.name + 'さん、ようこそ';
+    $('loading').classList.add('hidden');
+    $('app').classList.remove('hidden');
+    buildChapters();
+    render();
+    if (Object.keys(dirty).length) flush();
+  }).catch(function (e) {
+    $('loading').textContent = (e && e.message === 'not found')
+      ? 'リンクが見つかりませんでした。ゆわにお知らせください。'
+      : 'ひらけませんでした。通信のよいところで、もう一度ひらいてください。';
+  });
+})();
+</script>
+</body>
+</html>

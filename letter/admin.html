@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>NEXT STORY 文通・ゆわ用</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>NEXT STORY 文通・ゆわ用</h1>
+
+  <div id="login" class="box hidden">
+    <p style="margin-top:0">合言葉（GASの ADMIN_KEY）</p>
+    <input type="password" id="adminKey">
+    <button class="main" id="loginBtn">ひらく</button>
+  </div>
+
+  <div id="list" class="hidden">
+    <h3>参加者</h3>
+    <div id="people"></div>
+    <button id="reloadBtn">最新にする</button>
+    <h3>参加者を追加</h3>
+    <input type="text" id="newName" placeholder="お名前（例：真由美）">
+    <button id="addBtn">追加して招待リンクをつくる</button>
+  </div>
+
+  <div id="detail" class="hidden">
+    <button id="backBtn">← 参加者一覧</button>
+    <h2 id="pName"></h2>
+
+    <div class="box">
+      <div class="note">招待リンク（本人に送る）</div>
+      <div id="pLink" class="pre" style="word-break:break-all;font-size:14px"></div>
+      <button id="copyBtn">コピー</button>
+    </div>
+
+    <div id="pAnswers"></div>
+
+    <h3>往復（追加質問）</h3>
+    <div id="pThread"></div>
+    <p class="note">意味ではなく場面を聞く。誘導しない。話したくないことには踏み込まない。</p>
+    <textarea id="askText" placeholder="本人の言葉から、追加の問いを"></textarea>
+    <button class="main" id="askBtn">送る</button>
+  </div>
+</div>
+<div id="status" class="status hidden"></div>
+
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var ADMIN = '';
+  try { ADMIN = localStorage.getItem('ns_admin') || ''; } catch (e) {}
+  var people = [];
+  var cur = null;
+
+  function api(payload) {
+    payload.admin = ADMIN;
+    return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); });
+  }
+  function status(t) { var s = $('status'); s.textContent = t; s.classList.remove('hidden'); }
+  function fmt(ms) {
+    if (!ms) return '';
+    var d = new Date(ms);
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+  function show(id) {
+    ['login', 'list', 'detail'].forEach(function (x) { $(x).classList.toggle('hidden', x !== id); });
+    window.scrollTo(0, 0);
+  }
+  function seen() { try { return JSON.parse(localStorage.getItem('ns_seen') || '{}'); } catch (e) { return {}; } }
+  function markSeen(p) { try { var s = seen(); s[p.key] = p.updatedAt; localStorage.setItem('ns_seen', JSON.stringify(s)); } catch (e) {} }
+  function link(key) { return location.href.replace(/admin\.html.*$/, '') + 'index.html?k=' + key; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function load() {
+    status('読みこんでいます…');
+    return api({ action: 'adminList' }).then(function (res) {
+      if (!res.ok) {
+        if (res.error === 'admin') { show('login'); status('合言葉がちがうようです'); return; }
+        throw new Error(res.error);
+      }
+      try { localStorage.setItem('ns_admin', ADMIN); } catch (e) {}
+      people = res.people;
+      renderList();
+      if (cur) {
+        var p = people.filter(function (x) { return x.key === cur.key; })[0];
+        if (p) { cur = p; renderDetail(); }
+      }
+      status('最新です');
+    }).catch(function () { status('読みこめませんでした'); });
+  }
+
+  function renderList() {
+    var box = $('people');
+    box.innerHTML = '';
+    var s = seen();
+    if (!people.length) box.appendChild(el('p', 'note', 'まだ参加者がいません'));
+    people.forEach(function (p) {
+      var b = el('button', 'person');
+      var isNew = p.lastFrom === 'me' && s[p.key] !== p.updatedAt;
+      b.textContent = (isNew ? '● ' : '') + p.name + 'さん　' + fmt(p.updatedAt);
+      if (isNew) b.classList.add('dot');
+      b.onclick = function () { cur = p; markSeen(p); renderDetail(); show('detail'); };
+      box.appendChild(b);
+    });
+    if (!cur) show('list');
+  }
+
+  function renderDetail() {
+    var p = cur, st = p.state;
+    $('pName').textContent = p.name + 'さん';
+    $('pLink').textContent = link(p.key);
+
+    var A = $('pAnswers');
+    A.innerHTML = '';
+    window.CHAPTERS.forEach(function (ch) {
+      A.appendChild(el('h3', null, ch.name + '「' + ch.title + '」　' +
+        (st.submitted[ch.id] ? fmt(st.submitted[ch.id]) + ' に届いた' : 'まだ届いていない（途中の言葉は見えます）')));
+
+      var qs = [];
+      ch.days.forEach(function (d) { d.qs.forEach(function (q) { qs.push(q); }); });
+      if (ch.closing) qs.push(ch.closing);
+      qs.forEach(function (q, i) {
+        var a = st.answers[q.id];
+        var box = el('div', 'q');
+        box.appendChild(el('p', 'note', (q.id.indexOf('close') >= 0 ? '締め' : 'Q' + (i + 1)) + '　' + q.text));
+        box.appendChild(el('div', 'box pre', a && a.t ? a.t : '（まだ／とばした）'));
+        A.appendChild(box);
+      });
+
+      // 章末の下書き
+      A.appendChild(el('h3', null, ch.name + 'の下書き（本人と一緒に育てる）'));
+      var dft = st.drafts[ch.id];
+      var ta = el('textarea');
+      ta.style.minHeight = '220px';
+      ta.value = dft ? dft.text : '';
+      ta.placeholder = '回答の言葉を編んだ短い文章';
+      A.appendChild(ta);
+      var btn = el('button', 'main', dft ? '下書きを更新して本人に見せる' : '下書きを本人に届ける');
+      btn.onclick = function () {
+        btn.disabled = true;
+        api({ action: 'adminDraft', key: p.key, ch: ch.id, text: ta.value }).then(function (res) {
+          btn.disabled = false;
+          if (!res.ok) throw new Error();
+          p.state = res.state; renderDetail(); status('下書きを本人のページに出しました');
+        }).catch(function () { btn.disabled = false; status('うまく届きませんでした'); });
+      };
+      A.appendChild(btn);
+      if (dft) A.appendChild(el('div', 'note', fmt(dft.at) + ' に届けた版'));
+
+      (st.revisions[ch.id] || []).forEach(function (r) {
+        var m = el('div', 'msg me');
+        m.appendChild(el('span', 'who', '本人からの修正　' + fmt(r.at)));
+        m.appendChild(document.createTextNode(r.text));
+        A.appendChild(m);
+      });
+    });
+
+    var T = $('pThread');
+    T.innerHTML = '';
+    if (!st.thread.length) T.appendChild(el('p', 'note', 'まだやりとりはありません'));
+    st.thread.forEach(function (m) {
+      var d = el('div', 'msg ' + (m.from === 'yuwa' ? 'yuwa' : 'me'));
+      d.appendChild(el('span', 'who', (m.from === 'yuwa' ? 'ゆわ' : p.name + 'さん') + '　' + fmt(m.at)));
+      d.appendChild(document.createTextNode(m.text));
+      T.appendChild(d);
+    });
+  }
+
+  $('loginBtn').onclick = function () { ADMIN = $('adminKey').value.trim(); load(); };
+  $('reloadBtn').onclick = load;
+  $('backBtn').onclick = function () { cur = null; load(); };
+  $('copyBtn').onclick = function () {
+    var t = $('pLink').textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+      .then(function () { status('コピーしました'); })
+      .catch(function () { status('長押しでコピーしてください'); });
+  };
+  $('addBtn').onclick = function () {
+    var n = $('newName').value.trim();
+    if (!n) return;
+    api({ action: 'adminAdd', name: n }).then(function (res) {
+      if (!res.ok) throw new Error();
+      $('newName').value = '';
+      status(n + 'さんを追加しました');
+      load();
+    }).catch(function () { status('追加できませんでした'); });
+  };
+  $('askBtn').onclick = function () {
+    var t = $('askText').value.trim();
+    if (!t || !cur) return;
+    var btn = this;
+    btn.disabled = true;
+    api({ action: 'adminAsk', key: cur.key, text: t }).then(function (res) {
+      btn.disabled = false;
+      if (!res.ok) throw new Error();
+      $('askText').value = '';
+      cur.state = res.state; renderDetail(); status('送りました（LINEでひと声かけると気づきやすいです）');
+    }).catch(function () { btn.disabled = false; status('うまく送れませんでした'); });
+  };
+
+  if (ADMIN) load(); else show('login');
+})();
+</script>
+</body>
+</html>
