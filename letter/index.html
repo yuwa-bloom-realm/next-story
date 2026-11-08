@@ -15,6 +15,12 @@
   <div id="app" class="hidden">
     <h2 id="hello"></h2>
 
+    <!-- ゆわからの新しいお便り（前回ひらいたあとに届いたものがあるときだけ） -->
+    <div id="newMail" class="box hidden" style="background:#f1ebe3;border-color:#d9cbbb;cursor:pointer">
+      <span class="dot">●</span> ゆわから新しいお便りが届いています
+      <div class="note" id="newMailWhat"></div>
+    </div>
+
     <div class="box note">
       ・答えは、書いても、話しても（キーボードのマイクで音声入力できます）大丈夫です。<br>
       ・答えにくい問いは、とばしてください。一言だけでも十分です。<br>
@@ -218,6 +224,32 @@
     return d;
   }
 
+  // ---------- 新しいお便りの目印 ----------
+  var SEEN = 'ns_letter_seen_' + key;
+  var lastSeen = 0;
+  try { lastSeen = Number(localStorage.getItem(SEEN) || 0); } catch (e) {}
+
+  function showNewMail() {
+    var newQ = state.thread.filter(function (m) { return m.from === 'yuwa' && m.at > lastSeen; });
+    var newD = [];
+    window.CHAPTERS.forEach(function (ch) {
+      var d = state.drafts[ch.id];
+      if (d && d.text && d.at > lastSeen) newD.push(ch);
+    });
+    if (lastSeen && (newQ.length || newD.length)) {
+      var what = [];
+      if (newQ.length) what.push('ゆわとの往復');
+      newD.forEach(function (ch) { what.push('あなたの' + ch.name + '（下書き）'); });
+      $('newMailWhat').textContent = what.join('・') + ' をタップで見られます';
+      $('newMail').classList.remove('hidden');
+      $('newMail').onclick = function () {
+        var target = newQ.length ? $('threadWrap') : $('draftWrap_' + newD[0].id);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      };
+    }
+    try { localStorage.setItem(SEEN, String(Date.now())); } catch (e) {}
+  }
+
   function render() {
     // 往復
     var th = $('thread');
@@ -229,7 +261,8 @@
         div.className = 'msg ' + (m.from === 'yuwa' ? 'yuwa' : 'me');
         var w = document.createElement('span');
         w.className = 'who';
-        w.textContent = (m.from === 'yuwa' ? 'ゆわ' : 'あなた') + '　' + fmt(m.at);
+        w.textContent = (m.from === 'yuwa' ? 'ゆわ' : 'あなた') + '　' + fmt(m.at) +
+          (m.from === 'yuwa' && lastSeen && m.at > lastSeen ? '　● 新しいお便り' : '');
         div.appendChild(w);
         div.appendChild(document.createTextNode(m.text));
         th.appendChild(div);
@@ -285,6 +318,7 @@
     $('app').classList.remove('hidden');
     buildChapters();
     render();
+    showNewMail();
     if (Object.keys(dirty).length) flush();
   }).catch(function (e) {
     $('loading').textContent = (e && e.message === 'not found')
