@@ -100,10 +100,21 @@
   function getTok() { try { return localStorage.getItem(AT) || ''; } catch (e) { return ''; } }
   function setTok(t) { try { if (t) localStorage.setItem(AT, t); else localStorage.removeItem(AT); } catch (e) {} }
 
-  function api(payload) {
-    payload.atoken = getTok();
+  var SAFE = { adminLogin: 1, adminList: 1, adminIssuePass: 1, adminRevoke: 1, adminDraft: 1, adminLogoutAll: 1 };
+  function post(payload, tries) {
     return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
       .then(function (r) { return r.json(); })
+      .catch(function (e) {
+        if (tries > 0 && SAFE[payload.action]) {
+          return new Promise(function (ok) { setTimeout(ok, 1500); }).then(function () { return post(payload, tries - 1); });
+        }
+        throw e;
+      });
+  }
+
+  function api(payload) {
+    payload.atoken = getTok();
+    return post(payload, 2)
       .then(function (res) {
         if (!res.ok && res.error === 'admin') { setTok(''); show('login'); status('もう一度、合言葉を入れてください'); }
         return res;

@@ -80,11 +80,22 @@
     $('loginMsg').textContent = msg || '';
   }
 
+  var SAFE = { login: 1, me: 1, saveAnswers: 1, submit: 1, logout: 1 };
+  function post(payload, tries) {
+    return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); })
+      .catch(function (e) {
+        if (tries > 0 && SAFE[payload.action]) {
+          return new Promise(function (ok) { setTimeout(ok, 1500); }).then(function () { return post(payload, tries - 1); });
+        }
+        throw e;
+      });
+  }
+
   function api(payload) {
     payload.key = key;
     payload.token = getToken();
-    return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
-      .then(function (r) { return r.json(); })
+    return post(payload, 2)
       .then(function (res) {
         if (!res.ok && res.error === 'auth' && payload.action !== 'login') {
           showLogin('もう一度、あいことばを入れてください。');
