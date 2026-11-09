@@ -224,7 +224,8 @@
     $('pName').textContent = p.name + 'さん';
     $('pLink').textContent = link(p.key);
     $('passState').textContent = (p.hasPass ? 'あいことば：発行ずみ' : 'あいことば：まだ発行していません') +
-      '　／　ログイン中の端末：' + p.sessions + '台' + (p.locked ? '　／　ロック中' : '');
+      '　／　ログイン中の端末：' + p.sessions + '台' + (p.locked ? '　／　ロック中' : '') +
+      (p.eid ? '　／　編集室のお客様ID：' + p.eid : '');
 
     var A = $('pAnswers');
     A.innerHTML = '';
