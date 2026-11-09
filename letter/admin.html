@@ -6,17 +6,31 @@
 <meta name="robots" content="noindex">
 <title>NEXT STORY 文通・ゆわ用</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .flag { background: #fbe7dc; border-radius: 6px; padding: 6px 10px; margin: 6px 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .flag button { margin: 0; padding: 4px 12px; font-size: 13px; }
+  .passbox { font-size: 22px; letter-spacing: .05em; text-align: center; padding: 14px; }
+  .warn { color: #a5503a; }
+</style>
 </head>
 <body>
 <div class="wrap">
   <h1>NEXT STORY 文通・ゆわ用</h1>
 
+  <!-- 合言葉 -->
   <div id="login" class="box hidden">
-    <p style="margin-top:0">合言葉（GASの ADMIN_KEY）</p>
+    <p style="margin-top:0">管理ページの合言葉</p>
     <input type="text" id="adminKey" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div id="setupWrap" class="hidden">
+      <p class="note">はじめての切り替えです。これからの新しい合言葉を決めてください（8文字以上・今の合言葉とはちがうもの）。決めたあとは、新しい合言葉だけで入れます。</p>
+      <input type="text" id="newKey1" placeholder="新しい合言葉" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <input type="text" id="newKey2" placeholder="もう一度" autocomplete="off" autocapitalize="off" spellcheck="false" style="margin-top:8px">
+    </div>
     <button class="main" id="loginBtn">ひらく</button>
+    <div class="note" id="loginMsg"></div>
   </div>
 
+  <!-- 一覧 -->
   <div id="list" class="hidden">
     <h3>参加者</h3>
     <div id="people"></div>
@@ -24,16 +38,42 @@
     <h3>参加者を追加</h3>
     <input type="text" id="newName" placeholder="お名前（例：真由美）">
     <button id="addBtn">追加して招待リンクをつくる</button>
+    <h3>この管理ページ</h3>
+    <button id="logoutAllBtn">すべての端末で管理ページからログアウト</button>
   </div>
 
+  <!-- 一人ぶん -->
   <div id="detail" class="hidden">
     <button id="backBtn">← 参加者一覧</button>
     <h2 id="pName"></h2>
 
     <div class="box">
-      <div class="note">招待リンク（本人に送る）</div>
+      <div class="note">招待リンク（LINEで本人に送る）</div>
       <div id="pLink" class="pre" style="word-break:break-all;font-size:14px"></div>
-      <button id="copyBtn">コピー</button>
+      <button id="copyBtn">リンクをコピー</button>
+    </div>
+
+    <div class="box">
+      <div class="note">あいことば（リンクとは別に、口頭で伝える）</div>
+      <div id="passState" class="note"></div>
+      <div id="passShow" class="hidden">
+        <div class="passbox box" id="passText"></div>
+        <p class="note warn">このあいことばは、この画面でしか表示されません。メモして、口頭で伝えてください。閉じると二度と見られません（忘れたら再発行）。</p>
+      </div>
+      <button id="issueBtn">あいことばを発行する</button>
+      <button id="revokeBtn">この人の通行証を全部取り消す</button>
+      <p class="note">発行しなおすと、それまでのあいことばと通行証は使えなくなります。端末をなくしたときは「取り消す」→「発行」の順で。</p>
+    </div>
+
+    <div class="box">
+      <div class="note">編集室（くろぴ）に見せる</div>
+      <button class="main" id="editorBtn">編集室用にコピーをつくる</button>
+      <div id="editorWrap" class="hidden">
+        <p class="note">この人の手紙だけをまとめました。名前は「お客様」に置きかえています。<br><b>下の印のついた言葉を確かめて、個人が特定される情報を取り除いてからコピーしてください。</b>自動の印は見落としを減らすための補助です。最後はゆわの目で確かめてください。</p>
+        <div id="flags"></div>
+        <textarea id="editorText" style="min-height:320px;font-size:14px"></textarea>
+        <button class="main" id="editorCopy">確かめたのでコピーする</button>
+      </div>
     </div>
 
     <div id="pAnswers"></div>
@@ -52,15 +92,22 @@
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var ADMIN = '';
-  try { ADMIN = localStorage.getItem('ns_admin') || ''; } catch (e) {}
+  var AT = 'ns_admin_token';
+  try { localStorage.removeItem('ns_admin'); } catch (e) {} // 古い版で保存していた合言葉を消す
   var people = [];
   var cur = null;
 
+  function getTok() { try { return localStorage.getItem(AT) || ''; } catch (e) { return ''; } }
+  function setTok(t) { try { if (t) localStorage.setItem(AT, t); else localStorage.removeItem(AT); } catch (e) {} }
+
   function api(payload) {
-    payload.admin = ADMIN;
+    payload.atoken = getTok();
     return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
-      .then(function (r) { return r.json(); });
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res.ok && res.error === 'admin') { setTok(''); show('login'); status('もう一度、合言葉を入れてください'); }
+        return res;
+      });
   }
   function status(t) { var s = $('status'); s.textContent = t; s.classList.remove('hidden'); }
   function fmt(ms) {
@@ -77,14 +124,42 @@
   function link(key) { return location.href.replace(/admin\.html.*$/, '') + 'index.html?k=' + key; }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
+  // ---------- 合言葉 ----------
+  $('loginBtn').onclick = function () {
+    var pass = $('adminKey').value;
+    var payload = { action: 'adminLogin', pass: pass };
+    if (!$('setupWrap').classList.contains('hidden')) {
+      var a = $('newKey1').value, b = $('newKey2').value;
+      if (a !== b) { $('loginMsg').textContent = '新しい合言葉が2つでちがいます'; return; }
+      payload.newPass = a;
+    }
+    $('loginMsg').textContent = 'たしかめています…';
+    api(payload).then(function (res) {
+      if (res.ok) {
+        setTok(res.token);
+        $('adminKey').value = ''; $('newKey1').value = ''; $('newKey2').value = '';
+        $('setupWrap').classList.add('hidden');
+        $('loginMsg').textContent = '';
+        load();
+        return;
+      }
+      if (res.error === 'needSetup') { $('setupWrap').classList.remove('hidden'); $('loginMsg').textContent = '新しい合言葉を決めてください'; }
+      else if (res.error === 'weak') $('loginMsg').textContent = '新しい合言葉は8文字以上で、今の合言葉とちがうものにしてください';
+      else if (res.error === 'locked') $('loginMsg').textContent = 'しばらくロックされています。時間をおいてください';
+      else $('loginMsg').textContent = '合言葉がちがうようです';
+    }).catch(function () { $('loginMsg').textContent = 'つながりませんでした'; });
+  };
+
+  $('logoutAllBtn').onclick = function () {
+    if (!confirm('すべての端末で、管理ページからログアウトします。いいですか？')) return;
+    api({ action: 'adminLogoutAll' }).then(function () { setTok(''); show('login'); });
+  };
+
+  // ---------- 一覧 ----------
   function load() {
     status('読みこんでいます…');
     return api({ action: 'adminList' }).then(function (res) {
-      if (!res.ok) {
-        if (res.error === 'admin') { show('login'); status('合言葉がちがうようです'); return; }
-        throw new Error(res.error);
-      }
-      try { localStorage.setItem('ns_admin', ADMIN); } catch (e) {}
+      if (!res.ok) return;
       people = res.people;
       renderList();
       if (cur) {
@@ -103,18 +178,24 @@
     people.forEach(function (p) {
       var b = el('button', 'person');
       var isNew = p.lastFrom === 'me' && s[p.key] !== p.updatedAt;
-      b.textContent = (isNew ? '● ' : '') + p.name + 'さん　' + fmt(p.updatedAt);
+      b.textContent = (isNew ? '● ' : '') + p.name + 'さん　' + fmt(p.updatedAt) +
+        (p.hasPass ? '' : '　（あいことば未発行）') + (p.locked ? '　（ロック中）' : '');
       if (isNew) b.classList.add('dot');
-      b.onclick = function () { cur = p; markSeen(p); renderDetail(); show('detail'); };
+      b.onclick = function () { cur = p; markSeen(p); hidePass(); $('editorWrap').classList.add('hidden'); renderDetail(); show('detail'); };
       box.appendChild(b);
     });
     if (!cur) show('list');
   }
 
+  // ---------- 一人ぶん ----------
+  function hidePass() { $('passShow').classList.add('hidden'); $('passText').textContent = ''; }
+
   function renderDetail() {
     var p = cur, st = p.state;
     $('pName').textContent = p.name + 'さん';
     $('pLink').textContent = link(p.key);
+    $('passState').textContent = (p.hasPass ? 'あいことば：発行ずみ' : 'あいことば：まだ発行していません') +
+      '　／　ログイン中の端末：' + p.sessions + '台' + (p.locked ? '　／　ロック中' : '');
 
     var A = $('pAnswers');
     A.innerHTML = '';
@@ -133,7 +214,6 @@
         A.appendChild(box);
       });
 
-      // 章末の下書き
       A.appendChild(el('h3', null, ch.name + 'の下書き（本人と一緒に育てる）'));
       var dft = st.drafts[ch.id];
       var ta = el('textarea');
@@ -172,9 +252,106 @@
     });
   }
 
-  $('loginBtn').onclick = function () { ADMIN = $('adminKey').value.trim(); load(); };
+  // ---------- あいことば・通行証 ----------
+  $('issueBtn').onclick = function () {
+    if (!cur) return;
+    if (cur.hasPass && !confirm('あいことばを発行しなおします。今のあいことばと通行証は使えなくなります。いいですか？')) return;
+    api({ action: 'adminIssuePass', key: cur.key }).then(function (res) {
+      if (!res.ok) { status('発行できませんでした'); return; }
+      $('passText').textContent = res.pass;
+      $('passShow').classList.remove('hidden');
+      cur.hasPass = true; cur.sessions = 0; cur.locked = false;
+      renderDetail();
+      status('あいことばを発行しました');
+    });
+  };
+
+  $('revokeBtn').onclick = function () {
+    if (!cur || !confirm(cur.name + 'さんの通行証を全部取り消します。本人は次に開くとき、あいことばが必要になります。いいですか？')) return;
+    api({ action: 'adminRevoke', key: cur.key }).then(function (res) {
+      if (!res.ok) { status('取り消せませんでした'); return; }
+      cur.sessions = 0; cur.locked = false; renderDetail(); status('取り消しました');
+    });
+  };
+
+  // ---------- 編集室用にコピー ----------
+  var FLAG_RULES = [
+    { name: '電話番号', re: /0\d{1,4}[-ー−]?\d{1,4}[-ー−]?\d{3,4}/g },
+    { name: 'メール', re: /[\w.+-]+@[\w-]+\.[\w.]+/g },
+    { name: '郵便番号', re: /〒?\d{3}[-ー−]\d{4}/g },
+    { name: 'URL', re: /https?:\/\/\S+/g },
+    { name: '住所らしい言葉', re: /[一-龥ぁ-んァ-ヶ]{1,6}(都|道|府|県|市|区|町|村|丁目|番地)/g },
+    { name: '人の名前らしい言葉', re: /[一-龥ァ-ヶ]{1,5}(さん|ちゃん|くん|君|様|先生)/g },
+    { name: '4桁以上の数字', re: /\d{4,}/g },
+    { name: '会社・学校・病院らしい言葉', re: /[一-龥ァ-ヶA-Za-z]{1,10}(株式会社|会社|学校|小学校|中学校|高校|大学|病院|クリニック|医院)/g }
+  ];
+
+  function buildEditorText(p) {
+    var st = p.state, out = [];
+    out.push('【NEXT STORY 編集室用】お客様（名前は伏せています）');
+    window.CHAPTERS.forEach(function (ch) {
+      out.push('', '■ ' + ch.name + '「' + ch.title + '」');
+      var qs = [];
+      ch.days.forEach(function (d) { d.qs.forEach(function (q) { qs.push(q); }); });
+      if (ch.closing) qs.push(ch.closing);
+      qs.forEach(function (q) {
+        var a = st.answers[q.id];
+        if (a && a.t) out.push('', '問い：' + q.text, '答え：' + a.t);
+      });
+      var dft = st.drafts[ch.id];
+      if (dft && dft.text) out.push('', '［章末の下書き］', dft.text);
+      (st.revisions[ch.id] || []).forEach(function (r) { out.push('', '［下書きへの本人の修正］', r.text); });
+    });
+    if (st.thread.length) {
+      out.push('', '■ 往復');
+      st.thread.forEach(function (m) { out.push('', (m.from === 'yuwa' ? 'ゆわ：' : 'お客様：') + m.text); });
+    }
+    var text = out.join('\n');
+    if (p.name) text = text.split(p.name).join('お客様');
+    return text;
+  }
+
+  function renderFlags() {
+    var text = $('editorText').value;
+    var box = $('flags');
+    box.innerHTML = '';
+    var found = {};
+    FLAG_RULES.forEach(function (rule) {
+      (text.match(rule.re) || []).forEach(function (w) { found[w] = rule.name; });
+    });
+    var words = Object.keys(found);
+    if (!words.length) { box.appendChild(el('p', 'note', '自動の印はつきませんでした。それでも、目で確かめてください。')); return; }
+    box.appendChild(el('p', 'note warn', '確かめてほしい言葉：' + words.length + 'つ'));
+    words.forEach(function (w) {
+      var row = el('div', 'flag');
+      row.appendChild(el('span', null, '「' + w + '」（' + found[w] + '）'));
+      var b = el('button', null, '●●にする');
+      b.onclick = function () {
+        $('editorText').value = $('editorText').value.split(w).join('●●');
+        renderFlags();
+      };
+      row.appendChild(b);
+      box.appendChild(row);
+    });
+  }
+
+  $('editorBtn').onclick = function () {
+    if (!cur) return;
+    $('editorText').value = buildEditorText(cur);
+    $('editorWrap').classList.remove('hidden');
+    renderFlags();
+  };
+  $('editorText').addEventListener('input', renderFlags);
+  $('editorCopy').onclick = function () {
+    var t = $('editorText').value;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+      .then(function () { status('コピーしました。くろぴの編集室に貼ってください'); })
+      .catch(function () { $('editorText').select(); status('長押しで「すべてを選択」→コピーしてください'); });
+  };
+
+  // ---------- そのほか ----------
   $('reloadBtn').onclick = load;
-  $('backBtn').onclick = function () { cur = null; load(); };
+  $('backBtn').onclick = function () { cur = null; hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; load(); };
   $('copyBtn').onclick = function () {
     var t = $('pLink').textContent;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
@@ -187,7 +364,7 @@
     api({ action: 'adminAdd', name: n }).then(function (res) {
       if (!res.ok) throw new Error();
       $('newName').value = '';
-      status(n + 'さんを追加しました');
+      status(n + 'さんを追加しました。名前を開いて、あいことばを発行してください');
       load();
     }).catch(function () { status('追加できませんでした'); });
   };
@@ -200,11 +377,11 @@
       btn.disabled = false;
       if (!res.ok) throw new Error();
       $('askText').value = '';
-      cur.state = res.state; renderDetail(); status('送りました（LINEでひと声かけると気づきやすいです）');
+      cur.state = res.state; renderDetail(); status('送りました');
     }).catch(function () { btn.disabled = false; status('うまく送れませんでした'); });
   };
 
-  if (ADMIN) load(); else show('login');
+  if (getTok()) load(); else show('login');
 })();
 </script>
 </body>

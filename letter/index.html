@@ -13,6 +13,14 @@
   <div id="loading" class="note">ひらいています…</div>
   <div id="nokey" class="hidden box">このページは、ゆわからお送りした招待リンクからひらいてください。</div>
 
+  <!-- あいことば（この端末で最初の1回だけ） -->
+  <div id="login" class="hidden box">
+    <p style="margin-top:0">ゆわからお伝えした「あいことば」を入れてください。<br><span class="note">この端末では、次から入れなくても開けます（30日間）。</span></p>
+    <input type="text" id="pass" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例：まど・ゆうやけ・ふね・ほし">
+    <button class="main" id="loginBtn">ひらく</button>
+    <div class="note" id="loginMsg"></div>
+  </div>
+
   <div id="app" class="hidden">
     <h2 id="hello"></h2>
 
@@ -39,6 +47,8 @@
 
     <!-- 章ごとの質問 -->
     <div id="chapters"></div>
+
+    <p class="note" style="margin-top:48px">ほかの人と共有している端末のときは、読み終わったら <a href="#" id="logoutLink">この端末からログアウト</a> してください。</p>
   </div>
 </div>
 <div id="status" class="status hidden"></div>
@@ -49,18 +59,38 @@
 (function () {
   var key = new URLSearchParams(location.search).get('k');
   var LS = 'ns_letter_' + key;
+  var TK = 'ns_letter_token_' + key;
   var state = null;      // サーバーの状態
   var dirty = {};        // まだサーバーに届いていない答え
   var timer = null;
+  var started = false;
 
   var $ = function (id) { return document.getElementById(id); };
 
   if (!key) { $('loading').classList.add('hidden'); $('nokey').classList.remove('hidden'); return; }
 
+  function getToken() { try { return localStorage.getItem(TK) || ''; } catch (e) { return ''; } }
+  function setToken(t) { try { if (t) localStorage.setItem(TK, t); else localStorage.removeItem(TK); } catch (e) {} }
+
+  function showLogin(msg) {
+    setToken('');
+    $('loading').classList.add('hidden');
+    $('app').classList.add('hidden');
+    $('login').classList.remove('hidden');
+    $('loginMsg').textContent = msg || '';
+  }
+
   function api(payload) {
     payload.key = key;
+    payload.token = getToken();
     return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
-      .then(function (r) { return r.json(); });
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res.ok && res.error === 'auth' && payload.action !== 'login') {
+          showLogin('もう一度、あいことばを入れてください。');
+        }
+        return res;
+      });
   }
 
   function status(t) {
@@ -311,21 +341,55 @@
   $('replyText').addEventListener('input', function () { grow(this); });
 
   // ---------- 起動 ----------
-  api({ action: 'me' }).then(function (res) {
-    if (!res.ok) throw new Error(res.error);
+  function start(res) {
     state = res.state;
     $('hello').textContent = res.name + 'さん、ようこそ';
     $('loading').classList.add('hidden');
+    $('login').classList.add('hidden');
     $('app').classList.remove('hidden');
-    buildChapters();
+    if (!started) { started = true; buildChapters(); }
     render();
     showNewMail();
     if (Object.keys(dirty).length) flush();
-  }).catch(function (e) {
-    $('loading').textContent = (e && e.message === 'not found')
-      ? 'リンクが見つかりませんでした。ゆわにお知らせください。'
-      : 'ひらけませんでした。通信のよいところで、もう一度ひらいてください。';
-  });
+  }
+
+  $('loginBtn').onclick = function () {
+    var pass = $('pass').value.trim();
+    if (!pass) return;
+    var btn = this;
+    btn.disabled = true;
+    $('loginMsg').textContent = 'たしかめています…';
+    api({ action: 'login', pass: pass }).then(function (res) {
+      btn.disabled = false;
+      if (res.ok) { setToken(res.token); $('pass').value = ''; start(res); return; }
+      $('loginMsg').textContent = res.error === 'locked'
+        ? 'しばらく開けない状態になっています。時間をおいてから、もう一度どうぞ。'
+        : 'リンクか、あいことばがちがうようです。もう一度たしかめてください。';
+    }).catch(function () {
+      btn.disabled = false;
+      $('loginMsg').textContent = 'つながりませんでした。通信のよいところで、もう一度どうぞ。';
+    });
+  };
+
+  $('logoutLink').onclick = function (e) {
+    e.preventDefault();
+    flush().then(function () { return api({ action: 'logout' }); }).then(function () {
+      setToken('');
+      try { localStorage.removeItem(LS); } catch (er) {}
+      location.reload();
+    });
+  };
+
+  if (!getToken()) {
+    showLogin('');
+  } else {
+    api({ action: 'me' }).then(function (res) {
+      if (res.ok) start(res);
+      else if (res.error !== 'auth') throw new Error(res.error);
+    }).catch(function () {
+      $('loading').textContent = 'ひらけませんでした。通信のよいところで、もう一度ひらいてください。';
+    });
+  }
 })();
 </script>
 </body>
