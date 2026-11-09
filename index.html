@@ -210,7 +210,8 @@
         <p class="after-title">お申し込みのあとは</p>
         <ol>
           <li><span class="nw">この画面に「受付完了」が</span><span class="nw">表示されます</span></li>
-          <li><span class="nw">すぐに、ご入力のメールアドレスへ</span><span class="nw"><strong>参加日時とZoomの参加方法</strong>を</span><span class="nw">お送りします</span></li>
+          <li data-gas-only><span class="nw">すぐに、ご入力のメールアドレスへ</span><span class="nw"><strong>参加日時とZoomの参加方法</strong>を</span><span class="nw">お送りします</span></li>
+          <li data-fs-only style="display:none"><span class="nw">受付完了の画面に、</span><span class="nw"><strong>Zoomの参加方法</strong>が出ます。</span><span class="nw">前日までに、ゆわからもメールでご案内します</span></li>
           <li><span class="nw">当日、時間になったら</span><span class="nw">Zoomから参加してください</span></li>
         </ol>
       </div>
@@ -234,9 +235,17 @@
     <div class="eyebrow">THANK YOU</div>
     <p class="catch">お申し込みを<br>受け付けました。</p>
     <div class="chosen" id="chosenDate"></div>
+    <div id="zoomBox" class="after" style="display:none;text-align:left;margin-top:18px">
+      <p class="after-title">当日の参加方法（Zoom）</p>
+      <p>時間になったら、こちらから入室してください。<br>
+        <a id="zoomLink" href="#" style="color:var(--rose);word-break:break-all"></a><br>
+        ミーティングID：<span id="zoomId"></span></p>
+      <p><strong>この画面をスクリーンショットして、保存しておいてください。</strong><br>
+        前日までに、ゆわからもメールでご案内します。</p>
+    </div>
     <span class="flourish"></span>
-    <p><span class="nw">ご入力のメールアドレスへ、</span><span class="nw">参加日時とZoomの参加方法を</span><span class="nw">お送りしました。</span></p>
-    <p><span class="nw">届いていない場合は、</span><span class="nw">迷惑メールフォルダも</span><span class="nw">ご確認ください。</span></p>
+    <p data-gas-only><span class="nw">ご入力のメールアドレスへ、</span><span class="nw">参加日時とZoomの参加方法を</span><span class="nw">お送りしました。</span></p>
+    <p data-gas-only><span class="nw">届いていない場合は、</span><span class="nw">迷惑メールフォルダも</span><span class="nw">ご確認ください。</span></p>
     <p><span class="nw">当日、あなたにお会いできるのを</span><span class="nw">楽しみにしています。</span></p>
     <p style="text-align:right;font-family:var(--serif);color:var(--ink)">ゆわ</p>
   </section>
@@ -253,8 +262,22 @@
     '11月18日（水）20:00〜21:00',
   ];
 
-  // ★ GASをデプロイしたら、ここにウェブアプリのURLを貼る ★
+  // ★ 受付のしくみ：'formspree'（仮）か 'gas'（本番）★
+  const MODE = 'formspree';
+  const FORMSPREE_URL = 'https://formspree.io/f/mgaajvyd';
+  // ★ GASをデプロイしたら、ここにウェブアプリのURLを貼って MODE を 'gas' にする ★
   const GAS_URL = 'PASTE_GAS_WEB_APP_URL_HERE';
+  // Formspree のあいだは、受付完了画面に参加方法を表示する
+  const ZOOM_URL = 'https://us06web.zoom.us/j/3745046624';
+  const ZOOM_ID = '374 504 6624';
+
+  document.getElementById('zoomLink').href = ZOOM_URL;
+  document.getElementById('zoomLink').textContent = ZOOM_URL;
+  document.getElementById('zoomId').textContent = ZOOM_ID;
+  if (MODE === 'formspree') {
+    document.querySelectorAll('[data-gas-only]').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('[data-fs-only]').forEach(el => el.style.display = '');
+  }
 
   // 日時を「開催情報」と「フォームの選択肢」に表示
   const list = document.getElementById('dateList');
@@ -298,7 +321,17 @@
     });
 
     try {
-      await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: data });
+      if (MODE === 'formspree') {
+        const res = await fetch(FORMSPREE_URL, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: new URLSearchParams({ 'お名前': name, 'メール': email, '希望日時': date, '今の気持ち': form.message.value.trim(), _replyto: email, _subject: 'NEXT STORY体験会 申込（' + date + '／' + name + '）', _gotcha: form.website.value })
+        });
+        if (!res.ok) throw new Error('send failed');
+        document.getElementById('zoomBox').style.display = 'block';
+      } else {
+        await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: data });
+      }
       document.getElementById('apply').style.display = 'none';
       document.getElementById('chosenDate').textContent = date;
       const done = document.getElementById('done');
