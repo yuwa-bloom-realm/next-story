@@ -11,6 +11,11 @@
   .flag button { margin: 0; padding: 4px 12px; font-size: 13px; }
   .passbox { font-size: 22px; letter-spacing: .05em; text-align: center; padding: 14px; }
   .warn { color: #a5503a; }
+  .prop { border-color: #c9b29c; }
+  .prop.check { border-color: #d98b6f; background: #fff8f4; }
+  .prop pre { white-space: pre-wrap; font: inherit; font-size: 14px; margin: 8px 0 0; }
+  .storyopt { display: flex; gap: 8px; align-items: center; font-size: 14px; color: #6f5f55; margin: 8px 0; }
+  .storyopt input { width: auto; }
 </style>
 </head>
 <body>
@@ -79,6 +84,7 @@
     <h3>お手紙のやりとり</h3>
     <div id="pThread"></div>
     <div id="waitNote" class="note"></div>
+    <div id="propBox"></div>
     <h3 id="composeTitle">次のお手紙を書く</h3>
     <p class="note">1通に問いはひとつ（多くてもふたつ）。意味ではなく場面を聞く。誘導しない。話したくないことには踏み込まない。</p>
     <details class="box" id="seedBox">
@@ -86,6 +92,7 @@
       <div id="seeds"></div>
     </details>
     <textarea id="askText" style="min-height:200px" placeholder="お手紙の文面（あいさつ＋相手の言葉を受け取る一文＋問い）"></textarea>
+    <label class="storyopt"><input type="checkbox" id="asStory"> 物語の確認として送る（「私だ！／少しちがう／なんかちがう」のボタンがつきます）</label>
     <button class="main" id="askBtn">お手紙を送る</button>
 
     <div id="pAnswers"></div>
@@ -200,9 +207,10 @@
       var b = el('button', 'person');
       var isNew = p.lastFrom === 'me' && s[p.key] !== p.updatedAt;
       b.textContent = (isNew ? '● ' : '') + p.name + 'さん　' + fmt(p.updatedAt) +
+        (p.proposal ? (p.proposal.check ? '　（返信案・要確認）' : '　（返信案あり）') : '') +
         (p.hasPass ? '' : '　（あいことば未発行）') + (p.locked ? '　（ロック中）' : '');
       if (isNew) b.classList.add('dot');
-      b.onclick = function () { cur = p; markSeen(p); hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; $('askText').value = ''; renderDetail(); show('detail'); };
+      b.onclick = function () { cur = p; markSeen(p); hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; $('askText').value = ''; $('asStory').checked = false; renderDetail(); show('detail'); };
       box.appendChild(b);
     });
     if (!cur) show('list');
@@ -269,18 +277,52 @@
     st.thread.forEach(function (m) {
       var d = el('div', 'msg ' + (m.from === 'yuwa' ? 'yuwa' : 'me'));
       if (m.from === 'yuwa') n++;
-      d.appendChild(el('span', 'who', (m.from === 'yuwa' ? 'ゆわ（' + n + '通目のお手紙）' : p.name + 'さんのお返事') + '　' + fmt(m.at)));
-      d.appendChild(document.createTextNode(m.text));
+      d.appendChild(el('span', 'who', (m.from === 'yuwa' ? 'ゆわ（' + n + '通目のお手紙' + (m.kind === 'story' ? '・物語の確認' : '') + '）' : p.name + 'さんのお返事') + '　' + fmt(m.at)));
+      if (m.kind === 'check') d.appendChild(el('b', null, '「' + (CHECK_LABEL[m.choice] || '') + '」' + (m.text ? '\n' : '')));
+      if (m.text) d.appendChild(document.createTextNode(m.text));
       T.appendChild(d);
     });
     var last = st.thread[st.thread.length - 1];
     $('waitNote').textContent = !last ? '' : (last.from === 'yuwa'
       ? '→ いまは' + p.name + 'さんのお返事待ちです'
-      : '→ お返事が届いています。「編集室用にコピーをつくる」で、くろぴと次のお手紙を考えられます');
+      : (p.proposal ? '→ お返事が届いています。上の返信案を読んでから、お手紙を書いてください'
+        : '→ お返事が届いています。次の自動編集（10時・20時）で、ここに返信案が届きます'));
+    renderProposal(p);
     $('composeTitle').textContent = (n + 1) + '通目のお手紙を書く';
     $('askBtn').textContent = (n + 1) + '通目のお手紙として送る';
     var draft = st.answers.reply_draft;
     if (draft && draft.t) $('waitNote').textContent += '（本人は返事を書きかけています）';
+  }
+
+  var CHECK_LABEL = { me: '私だ！', little: '少しちがう', different: 'なんかちがう' };
+
+  // ---------- 編集室からの返信案 ----------
+  function renderProposal(p) {
+    var B = $('propBox');
+    B.innerHTML = '';
+    var pr = p.proposal;
+    if (!pr) return;
+    var box = el('div', 'box prop' + (pr.check ? ' check' : ''));
+    box.appendChild(el('div', 'note', '編集室（くろぴ）からの返信案　' + fmt(pr.at)));
+    if (pr.check) box.appendChild(el('p', 'warn', '要確認：' + (pr.checkWhy || '下の「E 注意点」を読んでから使ってください')));
+    if (pr.next) box.appendChild(el('p', null, 'おすすめの次の一手：' + pr.next));
+    if (pr.reply) {
+      box.appendChild(el('div', 'note', '返信文案'));
+      box.appendChild(el('div', 'box pre', pr.reply));
+      var use = el('button', 'main', 'この文案を下の書く欄に入れる');
+      use.onclick = function () {
+        $('askText').value = pr.reply;
+        $('asStory').checked = /短い物語/.test(pr.next || '');
+        $('askText').scrollIntoView({ behavior: 'smooth' });
+        status('書く欄に入れました。読んで、直してから送ってください');
+      };
+      box.appendChild(use);
+    }
+    var det = el('details');
+    det.appendChild(el('summary', 'note', 'くろぴの読み（A〜E）をぜんぶ見る'));
+    det.appendChild(el('pre', null, pr.text));
+    box.appendChild(det);
+    B.appendChild(box);
   }
 
   // 質問のたね（questions.js から）
@@ -354,7 +396,8 @@
     if (st.thread.length) {
       out.push('', '■ お手紙のやりとり（古い順）');
       st.thread.forEach(function (m) {
-        if (m.from === 'yuwa') { n++; out.push('', '［ゆわ・' + n + '通目のお手紙］', m.text); }
+        if (m.from === 'yuwa') { n++; out.push('', '［ゆわ・' + n + '通目のお手紙' + (m.kind === 'story' ? '（物語の確認）' : '') + '］', m.text); }
+        else if (m.kind === 'check') out.push('', '［お客様の確認：' + (CHECK_LABEL[m.choice] || '') + '］', m.text || '（ひとことはなし）');
         else out.push('', '［お客様のお返事］', m.text);
       });
     }
@@ -416,7 +459,7 @@
 
   // ---------- そのほか ----------
   $('reloadBtn').onclick = load;
-  $('backBtn').onclick = function () { cur = null; hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; $('askText').value = ''; load(); };
+  $('backBtn').onclick = function () { cur = null; hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; $('askText').value = ''; $('asStory').checked = false; load(); };
   $('copyBtn').onclick = function () {
     var t = $('pLink').textContent;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
@@ -440,14 +483,17 @@
   $('askBtn').onclick = function () {
     var t = $('askText').value.trim();
     if (!t || !cur) return;
-    if (!confirm(cur.name + 'さんに、このお手紙を送ります。いいですか？')) return;
+    var story = $('asStory').checked;
+    if (!confirm(cur.name + 'さんに、このお手紙を' + (story ? '「物語の確認」として' : '') + '送ります。いいですか？')) return;
     var btn = this;
     btn.disabled = true;
     status('送っています…');
-    api({ action: 'adminAsk', key: cur.key, text: t }).then(function (res) {
+    api({ action: 'adminAsk', key: cur.key, text: t, kind: story ? 'story' : '' }).then(function (res) {
       btn.disabled = false;
       if (!res.ok) throw new Error();
       $('askText').value = '';
+      $('asStory').checked = false;
+      cur.proposal = null;
       cur.state = res.state; renderDetail(); status('お手紙を送りました（LINEでひと声かけるとすぐ気づいてもらえます）');
     }).catch(function () {
       btn.disabled = false;

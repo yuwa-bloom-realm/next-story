@@ -12,6 +12,12 @@
   .mine { background: #f1ebe3; border-radius: 12px; padding: 12px 16px; margin: 8px 0 8px 22px; white-space: pre-wrap; }
   .mine .who { font-size: 12px; color: #8a7d74; display: block; }
   .newmark { color: #b0634a; font-size: 12px; margin-left: 6px; }
+  .letter.story { border-color: #c9b29c; background: #fffdf9; }
+  .check { margin: 4px 0 18px; }
+  .check .choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+  .check .choices button { margin: 0; }
+  .check .choices button.on { background: #6f5f55; color: #fff; border-color: #6f5f55; }
+  .mine .choice { font-weight: bold; display: block; }
 </style>
 </head>
 <body>
@@ -172,8 +178,8 @@
     state.thread.forEach(function (m) {
       if (m.from === 'yuwa') {
         n++;
-        var card = el('div', 'letter');
-        var head = el('div', 'lt-head', n + '通目のお手紙　' + fmt(m.at));
+        var card = el('div', 'letter' + (m.kind === 'story' ? ' story' : ''));
+        var head = el('div', 'lt-head', n + '通目のお手紙' + (m.kind === 'story' ? '　あなたの物語' : '') + '　' + fmt(m.at));
         if (lastSeen && m.at > lastSeen) head.appendChild(el('span', 'newmark', '● 新しいお手紙'));
         card.appendChild(head);
         card.appendChild(el('div', 'lt-body', m.text));
@@ -182,7 +188,8 @@
       } else {
         var mine = el('div', 'mine');
         mine.appendChild(el('span', 'who', 'あなたのお返事　' + fmt(m.at)));
-        mine.appendChild(document.createTextNode(m.text));
+        if (m.kind === 'check') mine.appendChild(el('span', 'choice', '「' + (CHECK_LABEL[m.choice] || '') + '」'));
+        if (m.text) mine.appendChild(document.createTextNode(m.text));
         L.appendChild(mine);
       }
     });
@@ -190,6 +197,9 @@
     var last = state.thread[state.thread.length - 1];
     if (!n) {
       L.appendChild(el('p', 'box note', 'ゆわからの1通目のお手紙を、もうすぐお届けします。届いたら、ここに表示されます。'));
+      $('replyWrap').classList.add('hidden');
+    } else if (last.from === 'yuwa' && last.kind === 'story') {
+      L.appendChild(checkBox());
       $('replyWrap').classList.add('hidden');
     } else {
       $('replyWrap').classList.remove('hidden');
@@ -232,6 +242,52 @@
       wrap.appendChild(btn);
       D.appendChild(wrap);
     });
+  }
+
+  // ---------- 物語の確認（私だ！／少しちがう／なんかちがう） ----------
+  var CHECK_LABEL = { me: '私だ！', little: '少しちがう', different: 'なんかちがう' };
+  var CHECK_HINT = {
+    me: 'ひとこと添えたいことがあれば（なくても大丈夫です）',
+    little: 'どこが少しちがうか、一言でも（書かなくても送れます）',
+    different: 'うまく言えなくても大丈夫です。気になったところがあれば（書かなくても送れます）'
+  };
+  function checkBox() {
+    var box = el('div', 'check box');
+    box.appendChild(el('p', null, 'この物語を読んで、どう感じましたか？'));
+    var row = el('div', 'choices');
+    var ta = el('textarea');
+    ta.className = 'hidden';
+    var send = el('button', 'main hidden', 'ゆわに送る');
+    var picked = '';
+    ['me', 'little', 'different'].forEach(function (c) {
+      var b = el('button', null, CHECK_LABEL[c]);
+      b.onclick = function () {
+        picked = c;
+        [].forEach.call(row.children, function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        ta.placeholder = CHECK_HINT[c];
+        ta.classList.remove('hidden');
+        send.classList.remove('hidden');
+      };
+      row.appendChild(b);
+    });
+    send.onclick = function () {
+      if (!picked) return;
+      send.disabled = true;
+      api({ action: 'storyCheck', choice: picked, text: ta.value.trim() }).then(function (res) {
+        send.disabled = false;
+        if (!res.ok) throw new Error();
+        state = res.state; render(); status('ゆわに届きました。ありがとうございます。');
+      }).catch(function () {
+        send.disabled = false;
+        status('届いたかどうか確かめられませんでした。ページを開き直して確かめてください。');
+      });
+    };
+    box.appendChild(row);
+    box.appendChild(el('p', 'note', '「ちがう」と感じたら、それがいちばん大切な手がかりです。物語は、あなたの感じ方に合わせて直していきます。'));
+    box.appendChild(ta);
+    box.appendChild(send);
+    return box;
   }
 
   function showNewMail() {
