@@ -260,22 +260,31 @@
   $('issueBtn').onclick = function () {
     if (!cur) return;
     if (cur.hasPass && !confirm('あいことばを発行しなおします。今のあいことばと通行証は使えなくなります。いいですか？')) return;
+    var ib = $('issueBtn');
+    ib.disabled = true;
+    status('あいことばを作っています…（10秒ほどかかることがあります）');
     api({ action: 'adminIssuePass', key: cur.key }).then(function (res) {
-      if (!res.ok) { status('発行できませんでした'); return; }
+      ib.disabled = false;
+      if (!res.ok) { status('発行できませんでした（' + res.error + '）'); return; }
       $('passText').textContent = res.pass;
       $('passShow').classList.remove('hidden');
       cur.hasPass = true; cur.sessions = 0; cur.locked = false;
       renderDetail();
       status('あいことばを発行しました');
+    }).catch(function () {
+      ib.disabled = false;
+      status('返事が届きませんでした。もう一度「あいことばを発行する」を押してください');
+      load();
     });
   };
 
   $('revokeBtn').onclick = function () {
     if (!cur || !confirm(cur.name + 'さんの通行証を全部取り消します。本人は次に開くとき、あいことばが必要になります。いいですか？')) return;
+    status('取り消しています…');
     api({ action: 'adminRevoke', key: cur.key }).then(function (res) {
       if (!res.ok) { status('取り消せませんでした'); return; }
       cur.sessions = 0; cur.locked = false; renderDetail(); status('取り消しました');
-    });
+    }).catch(function () { status('返事が届きませんでした。一覧を読みなおします'); load(); });
   };
 
   // ---------- 編集室用にコピー ----------
