@@ -156,7 +156,7 @@
   };
 
   // ---------- 一覧 ----------
-  function load() {
+  function load(retry) {
     status('読みこんでいます…');
     return api({ action: 'adminList' }).then(function (res) {
       if (!res.ok) return;
@@ -167,7 +167,11 @@
         if (p) { cur = p; renderDetail(); }
       }
       status('最新です');
-    }).catch(function () { status('読みこめませんでした'); });
+    }).catch(function () {
+      if (!retry) { setTimeout(function () { load(true); }, 1500); return; }
+      status('読みこめませんでした。「最新にする」を押してください');
+      if (!cur) show('list');
+    });
   }
 
   function renderList() {
@@ -366,7 +370,11 @@
       $('newName').value = '';
       status(n + 'さんを追加しました。名前を開いて、あいことばを発行してください');
       load();
-    }).catch(function () { status('追加できませんでした'); });
+    }).catch(function () {
+      $('newName').value = '';
+      status('返事が届きませんでした。一覧を読みなおします（追加できているか確かめてください）');
+      load();
+    });
   };
   $('askBtn').onclick = function () {
     var t = $('askText').value.trim();
