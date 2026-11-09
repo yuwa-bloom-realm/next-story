@@ -25,7 +25,7 @@
     <div class="box note">
       ・答えは、書いても、話しても（キーボードのマイクで音声入力できます）大丈夫です。<br>
       ・答えにくい問いは、とばしてください。一言だけでも十分です。<br>
-      ・「1日目」「2日目」は、ゆっくり進むための目安です。期限はありません。<br>
+      ・お手紙は、あなたのペースで一通ずつ。期限はありません。<br>
       ・書いた言葉は自動で保存されます。途中でとじても、続きから書けます。
     </div>
 
@@ -125,7 +125,7 @@
       var all = [];
       ch.days.forEach(function (day) {
         var h = document.createElement('h3');
-        h.textContent = day.label + '（目安）｜' + day.title;
+        h.textContent = day.label + '｜' + day.title;
         sec.appendChild(h);
         day.qs.forEach(function (q) { all.push(q); sec.appendChild(qBlock(q, loc)); });
       });

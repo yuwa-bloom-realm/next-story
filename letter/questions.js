@@ -7,7 +7,7 @@ window.CHAPTERS = [
     title: 'いま、私がいる場所',
     days: [
       {
-        label: '1日目',
+        label: '1通目のお手紙',
         title: 'いつもの私',
         qs: [
           { id: 'ch1_q1', text: '今日、朝起きてから最初にしたことは何ですか？' },
@@ -16,7 +16,7 @@ window.CHAPTERS = [
         ]
       },
       {
-        label: '2日目',
+        label: '2通目のお手紙',
         title: '私のそばにあるもの',
         qs: [
           { id: 'ch1_q4', text: '家の中で、よく過ごす場所はどこですか？ そこで何をしていますか？' },
@@ -25,7 +25,7 @@ window.CHAPTERS = [
         ]
       },
       {
-        label: '3日目',
+        label: '3通目のお手紙',
         title: '私らしい時間',
         qs: [
           { id: 'ch1_q7', text: '子どもの頃、どんな遊びが好きでしたか？' },
@@ -34,7 +34,7 @@ window.CHAPTERS = [
         ]
       },
       {
-        label: '4日目',
+        label: '4通目のお手紙',
         title: 'これからのページ',
         qs: [
           { id: 'ch1_q10', text: '子どもの頃、大人になった自分はどんなふうに暮らしていると思っていましたか？' },
