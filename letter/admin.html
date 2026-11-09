@@ -76,13 +76,19 @@
       </div>
     </div>
 
-    <div id="pAnswers"></div>
-
-    <h3>往復（追加質問）</h3>
+    <h3>お手紙のやりとり</h3>
     <div id="pThread"></div>
-    <p class="note">意味ではなく場面を聞く。誘導しない。話したくないことには踏み込まない。</p>
-    <textarea id="askText" placeholder="本人の言葉から、追加の問いを"></textarea>
-    <button class="main" id="askBtn">送る</button>
+    <div id="waitNote" class="note"></div>
+    <h3 id="composeTitle">次のお手紙を書く</h3>
+    <p class="note">1通に問いはひとつ（多くてもふたつ）。意味ではなく場面を聞く。誘導しない。話したくないことには踏み込まない。</p>
+    <details class="box" id="seedBox">
+      <summary class="note" style="cursor:pointer">質問のたね（タップでお手紙に入れる）</summary>
+      <div id="seeds"></div>
+    </details>
+    <textarea id="askText" style="min-height:200px" placeholder="お手紙の文面（あいさつ＋相手の言葉を受け取る一文＋問い）"></textarea>
+    <button class="main" id="askBtn">お手紙を送る</button>
+
+    <div id="pAnswers"></div>
   </div>
 </div>
 <div id="status" class="status hidden"></div>
@@ -196,7 +202,7 @@
       b.textContent = (isNew ? '● ' : '') + p.name + 'さん　' + fmt(p.updatedAt) +
         (p.hasPass ? '' : '　（あいことば未発行）') + (p.locked ? '　（ロック中）' : '');
       if (isNew) b.classList.add('dot');
-      b.onclick = function () { cur = p; markSeen(p); hidePass(); $('editorWrap').classList.add('hidden'); renderDetail(); show('detail'); };
+      b.onclick = function () { cur = p; markSeen(p); hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; $('askText').value = ''; renderDetail(); show('detail'); };
       box.appendChild(b);
     });
     if (!cur) show('list');
@@ -215,19 +221,19 @@
     var A = $('pAnswers');
     A.innerHTML = '';
     window.CHAPTERS.forEach(function (ch) {
-      A.appendChild(el('h3', null, ch.name + '「' + ch.title + '」　' +
-        (st.submitted[ch.id] ? fmt(st.submitted[ch.id]) + ' に届いた' : 'まだ届いていない（途中の言葉は見えます）')));
-
       var qs = [];
       ch.days.forEach(function (d) { d.qs.forEach(function (q) { qs.push(q); }); });
       if (ch.closing) qs.push(ch.closing);
-      qs.forEach(function (q, i) {
-        var a = st.answers[q.id];
-        var box = el('div', 'q');
-        box.appendChild(el('p', 'note', (q.id.indexOf('close') >= 0 ? '締め' : 'Q' + (i + 1)) + '　' + q.text));
-        box.appendChild(el('div', 'box pre', a && a.t ? a.t : '（まだ／とばした）'));
-        A.appendChild(box);
-      });
+      var old = qs.filter(function (q) { var a = st.answers[q.id]; return a && a.t; });
+      if (old.length) {
+        A.appendChild(el('h3', null, '以前の形式での答え（' + ch.name + '）'));
+        old.forEach(function (q) {
+          var box = el('div', 'q');
+          box.appendChild(el('p', 'note', q.text));
+          box.appendChild(el('div', 'box pre', st.answers[q.id].t));
+          A.appendChild(box);
+        });
+      }
 
       A.appendChild(el('h3', null, ch.name + 'の下書き（本人と一緒に育てる）'));
       var dft = st.drafts[ch.id];
@@ -258,14 +264,45 @@
 
     var T = $('pThread');
     T.innerHTML = '';
-    if (!st.thread.length) T.appendChild(el('p', 'note', 'まだやりとりはありません'));
+    var n = 0;
+    if (!st.thread.length) T.appendChild(el('p', 'note', 'まだお手紙を送っていません。下から1通目のお手紙を書いてください。'));
     st.thread.forEach(function (m) {
       var d = el('div', 'msg ' + (m.from === 'yuwa' ? 'yuwa' : 'me'));
-      d.appendChild(el('span', 'who', (m.from === 'yuwa' ? 'ゆわ' : p.name + 'さん') + '　' + fmt(m.at)));
+      if (m.from === 'yuwa') n++;
+      d.appendChild(el('span', 'who', (m.from === 'yuwa' ? 'ゆわ（' + n + '通目のお手紙）' : p.name + 'さんのお返事') + '　' + fmt(m.at)));
       d.appendChild(document.createTextNode(m.text));
       T.appendChild(d);
     });
+    var last = st.thread[st.thread.length - 1];
+    $('waitNote').textContent = !last ? '' : (last.from === 'yuwa'
+      ? '→ いまは' + p.name + 'さんのお返事待ちです'
+      : '→ お返事が届いています。「編集室用にコピーをつくる」で、くろぴと次のお手紙を考えられます');
+    $('composeTitle').textContent = (n + 1) + '通目のお手紙を書く';
+    $('askBtn').textContent = (n + 1) + '通目のお手紙として送る';
+    var draft = st.answers.reply_draft;
+    if (draft && draft.t) $('waitNote').textContent += '（本人は返事を書きかけています）';
   }
+
+  // 質問のたね（questions.js から）
+  (function buildSeeds() {
+    var S = $('seeds');
+    window.CHAPTERS.forEach(function (ch) {
+      var qs = [];
+      ch.days.forEach(function (d) { d.qs.forEach(function (q) { qs.push(q); }); });
+      if (ch.closing) qs.push(ch.closing);
+      S.appendChild(el('p', 'note', ch.name + '「' + ch.title + '」'));
+      qs.forEach(function (q) {
+        var b = el('button', null, q.text);
+        b.style.cssText = 'display:block;width:100%;text-align:left;border-radius:10px;font-size:14px;margin:6px 0';
+        b.onclick = function () {
+          var ta = $('askText');
+          ta.value = (ta.value ? ta.value.replace(/\s*$/, '') + '\n\n' : '') + q.text;
+          ta.focus();
+        };
+        S.appendChild(b);
+      });
+    });
+  })();
 
   // ---------- あいことば・通行証 ----------
   $('issueBtn').onclick = function () {
@@ -313,23 +350,27 @@
   function buildEditorText(p) {
     var st = p.state, out = [];
     out.push('【NEXT STORY 編集室用】お客様（名前は伏せています）');
+    var n = 0;
+    if (st.thread.length) {
+      out.push('', '■ お手紙のやりとり（古い順）');
+      st.thread.forEach(function (m) {
+        if (m.from === 'yuwa') { n++; out.push('', '［ゆわ・' + n + '通目のお手紙］', m.text); }
+        else out.push('', '［お客様のお返事］', m.text);
+      });
+    }
     window.CHAPTERS.forEach(function (ch) {
-      out.push('', '■ ' + ch.name + '「' + ch.title + '」');
       var qs = [];
       ch.days.forEach(function (d) { d.qs.forEach(function (q) { qs.push(q); }); });
       if (ch.closing) qs.push(ch.closing);
-      qs.forEach(function (q) {
-        var a = st.answers[q.id];
-        if (a && a.t) out.push('', '問い：' + q.text, '答え：' + a.t);
-      });
+      var old = qs.filter(function (q) { var a = st.answers[q.id]; return a && a.t; });
+      if (old.length) {
+        out.push('', '■ 以前の形式での答え（' + ch.name + '）');
+        old.forEach(function (q) { out.push('', '問い：' + q.text, '答え：' + st.answers[q.id].t); });
+      }
       var dft = st.drafts[ch.id];
-      if (dft && dft.text) out.push('', '［章末の下書き］', dft.text);
+      if (dft && dft.text) out.push('', '■ ' + ch.name + 'の章末の下書き', dft.text);
       (st.revisions[ch.id] || []).forEach(function (r) { out.push('', '［下書きへの本人の修正］', r.text); });
     });
-    if (st.thread.length) {
-      out.push('', '■ 往復');
-      st.thread.forEach(function (m) { out.push('', (m.from === 'yuwa' ? 'ゆわ：' : 'お客様：') + m.text); });
-    }
     var text = out.join('\n');
     if (p.name) text = text.split(p.name).join('お客様');
     return text;
@@ -375,7 +416,7 @@
 
   // ---------- そのほか ----------
   $('reloadBtn').onclick = load;
-  $('backBtn').onclick = function () { cur = null; hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; load(); };
+  $('backBtn').onclick = function () { cur = null; hidePass(); $('editorWrap').classList.add('hidden'); $('editorText').value = ''; $('askText').value = ''; load(); };
   $('copyBtn').onclick = function () {
     var t = $('pLink').textContent;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
@@ -399,14 +440,20 @@
   $('askBtn').onclick = function () {
     var t = $('askText').value.trim();
     if (!t || !cur) return;
+    if (!confirm(cur.name + 'さんに、このお手紙を送ります。いいですか？')) return;
     var btn = this;
     btn.disabled = true;
+    status('送っています…');
     api({ action: 'adminAsk', key: cur.key, text: t }).then(function (res) {
       btn.disabled = false;
       if (!res.ok) throw new Error();
       $('askText').value = '';
-      cur.state = res.state; renderDetail(); status('送りました');
-    }).catch(function () { btn.disabled = false; status('うまく送れませんでした'); });
+      cur.state = res.state; renderDetail(); status('お手紙を送りました（LINEでひと声かけるとすぐ気づいてもらえます）');
+    }).catch(function () {
+      btn.disabled = false;
+      status('届いたか確かめられませんでした。一覧を読みなおすので、お手紙が表示されているか確かめてから、送りなおしてください');
+      load();
+    });
   };
 
   if (getTok()) load(); else show('login');

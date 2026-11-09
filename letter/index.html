@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEXT STORY</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .letter { background: #fff; border: 1px solid #e6ddd2; border-radius: 12px; padding: 18px 18px 14px; margin: 22px 0 10px; }
+  .letter .lt-head { font-size: 13px; color: #8a7d74; letter-spacing: .08em; margin-bottom: 8px; }
+  .letter .lt-body { white-space: pre-wrap; }
+  .mine { background: #f1ebe3; border-radius: 12px; padding: 12px 16px; margin: 8px 0 8px 22px; white-space: pre-wrap; }
+  .mine .who { font-size: 12px; color: #8a7d74; display: block; }
+  .newmark { color: #b0634a; font-size: 12px; margin-left: 6px; }
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -26,27 +34,32 @@
 
     <!-- ゆわからの新しいお便り（前回ひらいたあとに届いたものがあるときだけ） -->
     <div id="newMail" class="box hidden" style="background:#f1ebe3;border-color:#d9cbbb;cursor:pointer">
-      <span class="dot">●</span> ゆわから新しいお便りが届いています
+      <span class="dot">●</span> ゆわから新しいお手紙が届いています
       <div class="note" id="newMailWhat"></div>
     </div>
 
     <div class="box note">
-      ・答えは、書いても、話しても（キーボードのマイクで音声入力できます）大丈夫です。<br>
-      ・答えにくい問いは、とばしてください。一言だけでも十分です。<br>
-      ・お手紙は、あなたのペースで一通ずつ。期限はありません。<br>
-      ・書いた言葉は自動で保存されます。途中でとじても、続きから書けます。
+      ・ゆわから、お手紙が一通ずつ届きます。あなたのお返事を読んでから、次のお手紙を書きます。<br>
+      ・お返事は、書いても、話しても（キーボードのマイクで音声入力できます）大丈夫です。一言だけでも十分です。<br>
+      ・答えにくいことは、書かなくて大丈夫です。期限もありません。<br>
+      ・書きかけの言葉は自動で保存されます。途中でとじても、続きから書けます。
     </div>
 
-    <!-- ゆわとの往復（メッセージがあるときだけ表示） -->
-    <div id="threadWrap" class="hidden">
-      <h3>ゆわとの往復</h3>
-      <div id="thread"></div>
+    <h3 id="chTitle" style="font-size:20px;color:#3a3330;border:none"></h3>
+
+    <!-- お手紙のやりとり -->
+    <div id="letters"></div>
+
+    <!-- お返事を書く -->
+    <div id="replyWrap" class="hidden">
+      <p class="note" id="replyLead"></p>
       <textarea id="replyText" placeholder="ここにお返事を（音声入力もできます）"></textarea>
-      <button id="replyBtn">ゆわに送る</button>
+      <button class="main" id="replyBtn">ゆわに送る</button>
+      <div class="note" id="saveState"></div>
     </div>
 
-    <!-- 章ごとの質問 -->
-    <div id="chapters"></div>
+    <!-- 章末の下書き -->
+    <div id="drafts"></div>
 
     <p class="note" style="margin-top:48px">ほかの人と共有している端末のときは、読み終わったら <a href="#" id="logoutLink">この端末からログアウト</a> してください。</p>
   </div>
@@ -58,12 +71,16 @@
 <script>
 (function () {
   var key = new URLSearchParams(location.search).get('k');
-  var LS = 'ns_letter_' + key;
   var TK = 'ns_letter_token_' + key;
-  var state = null;      // サーバーの状態
-  var dirty = {};        // まだサーバーに届いていない答え
-  var timer = null;
+  var LD = 'ns_letter_draft_' + key;   // 書きかけのお返事（この端末）
+  var SEEN = 'ns_letter_seen_' + key;
+  var DRAFT_ID = 'reply_draft';        // 書きかけのお返事（サーバー側）
+  var state = null;
   var started = false;
+  var timer = null;
+  var pending = null;                  // まだサーバーに届いていない書きかけ
+  var lastSeen = 0;
+  try { lastSeen = Number(localStorage.getItem(SEEN) || 0); } catch (e) {}
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -80,7 +97,8 @@
     $('loginMsg').textContent = msg || '';
   }
 
-  var SAFE = { login: 1, me: 1, saveAnswers: 1, submit: 1, logout: 1 };
+  // やり直しても安全な操作だけ、通信が途切れたら自動でやり直す
+  var SAFE = { login: 1, me: 1, saveAnswers: 1, logout: 1 };
   function post(payload, tries) {
     return fetch(window.API_URL, { method: 'POST', body: JSON.stringify(payload) })
       .then(function (r) { return r.json(); })
@@ -95,244 +113,143 @@
   function api(payload) {
     payload.key = key;
     payload.token = getToken();
-    return post(payload, 2)
-      .then(function (res) {
-        if (!res.ok && res.error === 'auth' && payload.action !== 'login') {
-          showLogin('もう一度、あいことばを入れてください。');
-        }
-        return res;
-      });
+    return post(payload, 2).then(function (res) {
+      if (!res.ok && res.error === 'auth' && payload.action !== 'login') {
+        showLogin('もう一度、あいことばを入れてください。');
+      }
+      return res;
+    });
   }
 
-  function status(t) {
-    var s = $('status');
-    s.textContent = t;
-    s.classList.remove('hidden');
-  }
-
+  function status(t) { var s = $('status'); s.textContent = t; s.classList.remove('hidden'); }
   function fmt(ms) {
     var d = new Date(ms);
     return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2);
   }
+  function grow(ta) { ta.style.height = 'auto'; ta.style.height = Math.max(120, ta.scrollHeight + 2) + 'px'; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
-  function local() {
-    try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch (e) { return {}; }
-  }
-  function setLocal(qid, v) {
-    try { var o = local(); o[qid] = v; localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {}
-  }
+  // ---------- 書きかけの保存 ----------
+  function localDraft() { try { return JSON.parse(localStorage.getItem(LD) || 'null'); } catch (e) { return null; } }
+  function setLocalDraft(v) { try { if (v) localStorage.setItem(LD, JSON.stringify(v)); else localStorage.removeItem(LD); } catch (e) {} }
 
-  function grow(ta) {
-    ta.style.height = 'auto';
-    ta.style.height = Math.max(84, ta.scrollHeight + 2) + 'px';
-  }
-
-  // ---------- 保存 ----------
-  function queueSave() {
-    clearTimeout(timer);
-    timer = setTimeout(flush, 2500);
-  }
-
+  function queueSave() { clearTimeout(timer); timer = setTimeout(flush, 2500); }
   function flush() {
     clearTimeout(timer);
-    var ids = Object.keys(dirty);
-    if (!ids.length) return Promise.resolve();
-    var send = {};
-    ids.forEach(function (id) { send[id] = dirty[id]; });
-    status('保存しています…');
-    return api({ action: 'saveAnswers', answers: send }).then(function (res) {
-      if (!res.ok) throw new Error(res.error);
-      ids.forEach(function (id) { if (dirty[id] === send[id]) delete dirty[id]; });
+    if (!pending) return Promise.resolve();
+    var send = pending;
+    var ans = {}; ans[DRAFT_ID] = send;
+    $('saveState').textContent = '保存しています…';
+    return api({ action: 'saveAnswers', answers: ans }).then(function (res) {
+      if (!res.ok) throw new Error();
+      if (pending === send) pending = null;
       state = res.state;
-      status('保存しました');
+      $('saveState').textContent = '書きかけを保存しました';
     }).catch(function () {
-      status('この端末に保存しています（通信がもどったら届きます）');
+      $('saveState').textContent = 'この端末に保存しています（通信がもどったら届きます）';
     });
   }
-
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'hidden') flush();
-  });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
   window.addEventListener('online', flush);
 
+  $('replyText').addEventListener('input', function () {
+    var v = { t: this.value, at: Date.now() };
+    pending = v;
+    setLocalDraft(v);
+    grow(this);
+    queueSave();
+  });
+  $('replyText').addEventListener('blur', flush);
+
   // ---------- 表示 ----------
-  function buildChapters() {
-    var root = $('chapters');
-    var loc = local();
-    window.CHAPTERS.forEach(function (ch) {
-      var sec = document.createElement('section');
-      sec.innerHTML = '<h3 style="font-size:20px;color:#3a3330;border:none">' + ch.name + '「' + ch.title + '」</h3>';
+  function render() {
+    var ch = window.CHAPTERS[0];
+    $('chTitle').textContent = ch ? ch.name + '「' + ch.title + '」' : '';
 
-      var all = [];
-      ch.days.forEach(function (day) {
-        var h = document.createElement('h3');
-        h.textContent = day.label + '｜' + day.title;
-        sec.appendChild(h);
-        day.qs.forEach(function (q) { all.push(q); sec.appendChild(qBlock(q, loc)); });
-      });
-      if (ch.closing) {
-        var h2 = document.createElement('h3');
-        h2.textContent = '締め';
-        sec.appendChild(h2);
-        sec.appendChild(qBlock(ch.closing, loc));
+    var L = $('letters');
+    L.innerHTML = '';
+    var n = 0;
+    state.thread.forEach(function (m) {
+      if (m.from === 'yuwa') {
+        n++;
+        var card = el('div', 'letter');
+        var head = el('div', 'lt-head', n + '通目のお手紙　' + fmt(m.at));
+        if (lastSeen && m.at > lastSeen) head.appendChild(el('span', 'newmark', '● 新しいお手紙'));
+        card.appendChild(head);
+        card.appendChild(el('div', 'lt-body', m.text));
+        card.id = 'letter_' + n;
+        L.appendChild(card);
+      } else {
+        var mine = el('div', 'mine');
+        mine.appendChild(el('span', 'who', 'あなたのお返事　' + fmt(m.at)));
+        mine.appendChild(document.createTextNode(m.text));
+        L.appendChild(mine);
       }
-
-      // 章を届ける
-      var sb = document.createElement('div');
-      sb.className = 'box';
-      sb.innerHTML =
-        '<p class="note" style="margin-top:0">途中でも、空欄があっても届けられます。届けたあとも書き足せます。</p>' +
-        '<button class="main" id="submit_' + ch.id + '">' + ch.name + 'をゆわに届ける</button>' +
-        '<div class="note" id="submitted_' + ch.id + '"></div>';
-      sec.appendChild(sb);
-
-      // 章末の下書き
-      var dr = document.createElement('div');
-      dr.id = 'draftWrap_' + ch.id;
-      dr.className = 'hidden';
-      dr.innerHTML =
-        '<h3>あなたの' + ch.name + '（下書き）</h3>' +
-        '<p class="note">あなたの言葉から、ゆわが編んだ下書きです。完成品ではありません。<br>「ここは違う」「本当はこうだった」があれば、あなたの言葉で教えてください。</p>' +
-        '<div class="box pre" id="draft_' + ch.id + '"></div>' +
-        '<div id="revs_' + ch.id + '"></div>' +
-        '<textarea id="revText_' + ch.id + '" placeholder="直したいところ、書き足したいこと"></textarea>' +
-        '<button id="revBtn_' + ch.id + '">ゆわに送る</button>';
-      sec.appendChild(dr);
-
-      root.appendChild(sec);
-
-      $('submit_' + ch.id).onclick = function () {
-        var btn = this;
-        btn.disabled = true;
-        flush().then(function () {
-          return api({ action: 'submit', ch: ch.id });
-        }).then(function (res) {
-          btn.disabled = false;
-          if (!res.ok) throw new Error();
-          state = res.state;
-          render();
-          status('ゆわに届きました。ありがとうございます。');
-        }).catch(function () { btn.disabled = false; status('うまく届きませんでした。少し時間をおいてもう一度どうぞ。'); });
-      };
-
-      $('revBtn_' + ch.id).onclick = function () {
-        var ta = $('revText_' + ch.id);
-        var t = ta.value.trim();
-        if (!t) return;
-        var btn = this;
-        btn.disabled = true;
-        api({ action: 'revise', ch: ch.id, text: t }).then(function (res) {
-          btn.disabled = false;
-          if (!res.ok) throw new Error();
-          ta.value = '';
-          state = res.state;
-          render();
-          status('ゆわに届きました');
-        }).catch(function () { btn.disabled = false; status('うまく届きませんでした。もう一度どうぞ。'); });
-      };
     });
-  }
 
-  function qBlock(q, loc) {
-    var d = document.createElement('div');
-    d.className = 'q';
-    var p = document.createElement('p');
-    p.textContent = q.text;
-    var ta = document.createElement('textarea');
-    ta.id = 'ta_' + q.id;
-
-    // サーバーと端末、新しいほうを使う
-    var sv = state.answers[q.id];
-    var lv = loc[q.id];
-    if (lv && (!sv || (lv.at || 0) > (sv.at || 0))) {
-      ta.value = lv.t;
-      if (!sv || lv.t !== sv.t) dirty[q.id] = lv;
-    } else if (sv) {
-      ta.value = sv.t;
+    var last = state.thread[state.thread.length - 1];
+    if (!n) {
+      L.appendChild(el('p', 'box note', 'ゆわからの1通目のお手紙を、もうすぐお届けします。届いたら、ここに表示されます。'));
+      $('replyWrap').classList.add('hidden');
+    } else {
+      $('replyWrap').classList.remove('hidden');
+      $('replyLead').textContent = last.from === 'yuwa'
+        ? n + '通目のお手紙へのお返事'
+        : 'お返事はゆわに届いています。次のお手紙は、夜か次の日の朝にお届けします。書き足したいことがあれば、ここからどうぞ。';
     }
 
-    ta.addEventListener('input', function () {
-      var v = { t: ta.value, at: Date.now() };
-      dirty[q.id] = v;
-      setLocal(q.id, v);
-      grow(ta);
-      queueSave();
+    // 章末の下書き
+    var D = $('drafts');
+    D.innerHTML = '';
+    window.CHAPTERS.forEach(function (c) {
+      var dft = state.drafts[c.id];
+      if (!dft || !dft.text) return;
+      var wrap = el('div');
+      wrap.id = 'draftWrap_' + c.id;
+      wrap.appendChild(el('h3', null, 'あなたの' + c.name + '（下書き）'));
+      wrap.appendChild(el('p', 'note', 'あなたの言葉から、ゆわが編んだ下書きです。完成品ではありません。「ここは違う」「本当はこうだった」があれば、あなたの言葉で教えてください。'));
+      wrap.appendChild(el('div', 'box pre', dft.text));
+      (state.revisions[c.id] || []).forEach(function (r) {
+        var m = el('div', 'mine');
+        m.appendChild(el('span', 'who', 'あなたが送った言葉　' + fmt(r.at)));
+        m.appendChild(document.createTextNode(r.text));
+        wrap.appendChild(m);
+      });
+      var ta = el('textarea');
+      ta.placeholder = '直したいところ、書き足したいこと';
+      var btn = el('button', null, 'ゆわに送る');
+      btn.onclick = function () {
+        var t = ta.value.trim();
+        if (!t) return;
+        btn.disabled = true;
+        api({ action: 'revise', ch: c.id, text: t }).then(function (res) {
+          btn.disabled = false;
+          if (!res.ok) throw new Error();
+          state = res.state; render(); status('ゆわに届きました');
+        }).catch(function () { btn.disabled = false; status('うまく届きませんでした。もう一度どうぞ。'); });
+      };
+      wrap.appendChild(ta);
+      wrap.appendChild(btn);
+      D.appendChild(wrap);
     });
-    ta.addEventListener('blur', flush);
-
-    d.appendChild(p);
-    d.appendChild(ta);
-    setTimeout(function () { grow(ta); }, 0);
-    return d;
   }
 
-  // ---------- 新しいお便りの目印 ----------
-  var SEEN = 'ns_letter_seen_' + key;
-  var lastSeen = 0;
-  try { lastSeen = Number(localStorage.getItem(SEEN) || 0); } catch (e) {}
-
   function showNewMail() {
-    var newQ = state.thread.filter(function (m) { return m.from === 'yuwa' && m.at > lastSeen; });
-    var newD = [];
-    window.CHAPTERS.forEach(function (ch) {
-      var d = state.drafts[ch.id];
-      if (d && d.text && d.at > lastSeen) newD.push(ch);
-    });
-    if (lastSeen && (newQ.length || newD.length)) {
+    var newL = state.thread.filter(function (m) { return m.from === 'yuwa' && m.at > lastSeen; }).length;
+    var newD = window.CHAPTERS.filter(function (c) { var d = state.drafts[c.id]; return d && d.text && d.at > lastSeen; });
+    if (lastSeen && (newL || newD.length)) {
       var what = [];
-      if (newQ.length) what.push('ゆわとの往復');
-      newD.forEach(function (ch) { what.push('あなたの' + ch.name + '（下書き）'); });
+      if (newL) what.push('新しいお手紙');
+      newD.forEach(function (c) { what.push('あなたの' + c.name + '（下書き）'); });
       $('newMailWhat').textContent = what.join('・') + ' をタップで見られます';
       $('newMail').classList.remove('hidden');
       $('newMail').onclick = function () {
-        var target = newQ.length ? $('threadWrap') : $('draftWrap_' + newD[0].id);
-        if (target) target.scrollIntoView({ behavior: 'smooth' });
+        var count = state.thread.filter(function (m) { return m.from === 'yuwa'; }).length;
+        var t = newL ? $('letter_' + count) : $('draftWrap_' + newD[0].id);
+        if (t) t.scrollIntoView({ behavior: 'smooth' });
       };
     }
     try { localStorage.setItem(SEEN, String(Date.now())); } catch (e) {}
-  }
-
-  function render() {
-    // 往復
-    var th = $('thread');
-    th.innerHTML = '';
-    if (state.thread.length) {
-      $('threadWrap').classList.remove('hidden');
-      state.thread.forEach(function (m) {
-        var div = document.createElement('div');
-        div.className = 'msg ' + (m.from === 'yuwa' ? 'yuwa' : 'me');
-        var w = document.createElement('span');
-        w.className = 'who';
-        w.textContent = (m.from === 'yuwa' ? 'ゆわ' : 'あなた') + '　' + fmt(m.at) +
-          (m.from === 'yuwa' && lastSeen && m.at > lastSeen ? '　● 新しいお便り' : '');
-        div.appendChild(w);
-        div.appendChild(document.createTextNode(m.text));
-        th.appendChild(div);
-      });
-    }
-
-    window.CHAPTERS.forEach(function (ch) {
-      var s = state.submitted[ch.id];
-      $('submitted_' + ch.id).textContent = s ? fmt(s) + ' にゆわへ届けました' : '';
-
-      var dft = state.drafts[ch.id];
-      if (dft && dft.text) {
-        $('draftWrap_' + ch.id).classList.remove('hidden');
-        $('draft_' + ch.id).textContent = dft.text;
-        var rv = $('revs_' + ch.id);
-        rv.innerHTML = '';
-        (state.revisions[ch.id] || []).forEach(function (r) {
-          var div = document.createElement('div');
-          div.className = 'msg me';
-          var w = document.createElement('span');
-          w.className = 'who';
-          w.textContent = 'あなたが送った言葉　' + fmt(r.at);
-          div.appendChild(w);
-          div.appendChild(document.createTextNode(r.text));
-          rv.appendChild(div);
-        });
-      }
-    });
   }
 
   $('replyBtn').onclick = function () {
@@ -340,16 +257,23 @@
     if (!t) return;
     var btn = this;
     btn.disabled = true;
+    clearTimeout(timer);
     api({ action: 'reply', text: t }).then(function (res) {
       btn.disabled = false;
       if (!res.ok) throw new Error();
-      $('replyText').value = '';
       state = res.state;
+      $('replyText').value = '';
+      pending = null;
+      setLocalDraft(null);
+      var ans = {}; ans[DRAFT_ID] = { t: '', at: Date.now() };
+      api({ action: 'saveAnswers', answers: ans });
       render();
-      status('ゆわに届きました');
-    }).catch(function () { btn.disabled = false; status('うまく届きませんでした。もう一度どうぞ。'); });
+      status('ゆわに届きました。ありがとうございます。');
+    }).catch(function () {
+      btn.disabled = false;
+      status('届いたかどうか確かめられませんでした。ページを開き直して、お返事が表示されているか確かめてください。');
+    });
   };
-  $('replyText').addEventListener('input', function () { grow(this); });
 
   // ---------- 起動 ----------
   function start(res) {
@@ -358,10 +282,19 @@
     $('loading').classList.add('hidden');
     $('login').classList.add('hidden');
     $('app').classList.remove('hidden');
-    if (!started) { started = true; buildChapters(); }
     render();
-    showNewMail();
-    if (Object.keys(dirty).length) flush();
+    if (!started) {
+      started = true;
+      // 書きかけを戻す（サーバーと端末の新しいほう）
+      var sv = state.answers[DRAFT_ID], lv = localDraft();
+      var use = lv && (!sv || (lv.at || 0) > (sv.at || 0)) ? lv : sv;
+      if (use && use.t) {
+        $('replyText').value = use.t;
+        grow($('replyText'));
+        if (use === lv && (!sv || sv.t !== lv.t)) { pending = lv; flush(); }
+      }
+      showNewMail();
+    }
   }
 
   $('loginBtn').onclick = function () {
@@ -386,7 +319,7 @@
     e.preventDefault();
     flush().then(function () { return api({ action: 'logout' }); }).then(function () {
       setToken('');
-      try { localStorage.removeItem(LS); } catch (er) {}
+      setLocalDraft(null);
       location.reload();
     });
   };
