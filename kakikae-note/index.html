@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>書き換えノート</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2b2a4c">
+<meta name="theme-color" content="#141733">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="書き換えノート">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -16,238 +16,389 @@
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <style>
   :root{
-    --bg:#f8f3ee; --paper:#fffdfa; --ink:#2b2a4c; --sub:#7a7690;
-    --rose:#c97b84; --rose-soft:#f3e1e3; --gold:#d9a441; --lav:#e9e3f3; --line:#eadfd6;
+    --night:#141733; --night2:#1f2450; --leather:#232a5a;
+    --gold:#c9a45c; --gold-l:#ecd49a; --gold-d:#8e6f32;
+    --paper:#f5ecd9; --paper2:#efe2c8; --ink:#3b2f2a; --ink-s:#7d6a5c;
+    --rose:#a8505e; --sage:#6f7d5c; --amber:#b9853a; --rule:rgba(120,90,60,.22);
+    --serif:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","Noto Serif CJK JP",serif;
+    --noise:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
-    -webkit-text-size-adjust:100%;}
-  body{padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%;color:var(--ink);font-family:var(--serif);-webkit-text-size-adjust:100%}
+  body{background:
+      radial-gradient(ellipse at 50% -10%, #2e3570 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 120%, #0c0e22 0%, transparent 60%),
+      var(--night);
+    background-attachment:fixed;}
   [hidden]{display:none !important}
-  .wrap{max-width:520px;margin:0 auto;padding:20px 18px 24px;}
-  h1{font-size:22px;letter-spacing:.08em;margin:0}
-  h2{font-size:16px;margin:26px 0 10px;letter-spacing:.06em}
-  .note{font-size:13px;color:var(--sub);line-height:1.7;margin:8px 0}
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;}
-  button{font:inherit;cursor:pointer;border:none;border-radius:999px;padding:14px 20px;font-size:16px;}
-  .primary{background:var(--ink);color:#fff;width:100%;letter-spacing:.1em;box-shadow:0 6px 16px rgba(43,42,76,.18)}
-  .primary:disabled{opacity:.5}
-  .ghost{background:transparent;color:var(--ink);border:1px solid var(--line);width:100%}
-  .soft{background:var(--rose-soft);color:var(--ink);width:100%}
-  input[type=text],textarea,select{font:inherit;font-size:16px;color:var(--ink);width:100%;
-    border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;outline:none;}
-  textarea{resize:none;line-height:1.7;min-height:64px}
-  textarea:focus,input:focus,select:focus{border-color:var(--rose)}
+  button{font:inherit;cursor:pointer;border:none}
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 12% 18%, #fff8 50%, transparent 51%),
+      radial-gradient(1px 1px at 78% 12%, #fff9 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 64% 34%, #fff6 50%, transparent 51%),
+      radial-gradient(1px 1px at 30% 72%, #fff7 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 88% 80%, #ffe9b088 50%, transparent 51%),
+      radial-gradient(1px 1px at 8% 92%, #fff6 50%, transparent 51%),
+      radial-gradient(1.3px 1.3px at 46% 6%, #ffe9b099 50%, transparent 51%);
+    animation:twinkle 6s ease-in-out infinite alternate}
+  @keyframes twinkle{from{opacity:.5}to{opacity:1}}
 
-  /* ログイン */
-  #login .hero{text-align:center;padding:40px 0 10px}
-  #login .moon{font-size:42px}
-  #login h1{margin-top:10px}
-  #login p.lead{color:var(--sub);font-size:14px;line-height:1.8}
-  #keyInput{text-align:center;letter-spacing:.2em;text-transform:uppercase;margin:18px 0 12px}
-  .err{color:#b4505c;font-size:14px;text-align:center;min-height:1.4em}
+  /* ===== 表紙 ===== */
+  #coverScreen{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px;transition:opacity .7s ease}
+  #coverScreen.fade{opacity:0;pointer-events:none}
+  .book{position:relative;width:min(64vw,300px);aspect-ratio:3/4.1;perspective:1800px;transform-origin:left center;
+    transition:transform 1s cubic-bezier(.55,.05,.25,1)}
+  .book.open{transform:translateX(50%) scale(.72)}
+  .leaf{position:absolute;inset:0;transform-origin:left center;transform-style:preserve-3d;
+    transition:transform 1s cubic-bezier(.6,.04,.3,1)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:3px 12px 12px 3px}
+  .face.back{transform:rotateY(180deg)}
+  .cover-leaf{z-index:30}
+  .cover-front{background:var(--noise),
+      radial-gradient(ellipse at 35% 25%, rgba(255,255,255,.10), transparent 55%),
+      linear-gradient(150deg,#2b336b 0%,#1b2048 60%,#12153a 100%);
+    box-shadow:0 30px 60px rgba(0,0,0,.55), inset 6px 0 10px rgba(0,0,0,.45), inset -2px 0 0 rgba(255,255,255,.05);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--gold-l);padding:22px}
+  .cover-front::before{content:"";position:absolute;inset:12px;border:1.5px solid rgba(201,164,92,.75);border-radius:2px 8px 8px 2px;
+    box-shadow:inset 0 0 0 4px rgba(201,164,92,.0), inset 0 0 0 5px rgba(201,164,92,.35)}
+  .cover-front::after{content:"";position:absolute;left:0;top:0;bottom:0;width:16px;border-radius:3px 0 0 3px;
+    background:linear-gradient(90deg,rgba(0,0,0,.45),rgba(0,0,0,0))}
+  .corner{position:absolute;color:var(--gold);font-size:14px;opacity:.9}
+  .corner.tl{top:18px;left:22px}.corner.tr{top:18px;right:18px}.corner.bl{bottom:16px;left:22px}.corner.br{bottom:16px;right:18px}
+  .emblem{font-size:34px;line-height:1;color:var(--gold-l);text-shadow:0 0 18px rgba(236,212,154,.55);margin-bottom:12px}
+  .cover-title{font-size:clamp(19px,5.6vw,26px);letter-spacing:.12em;margin:0 0 0 .12em;white-space:nowrap;font-weight:600;
+    background:linear-gradient(180deg,#f6e4b4,#c9a45c 55%,#9b7a3a);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
+  .cover-sub{font-size:11px;letter-spacing:.3em;color:rgba(236,212,154,.75);margin-top:10px}
+  .cover-line{width:56%;height:1px;margin:14px auto;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .cover-name{font-size:14px;letter-spacing:.12em;color:var(--gold-l);min-height:1.4em}
+  .cover-back{background:var(--noise),linear-gradient(90deg,#e9dcc0,#f3e8d1);box-shadow:inset -8px 0 14px rgba(0,0,0,.18)}
+  .cover-back::before{content:"";position:absolute;inset:14px;border:1px solid rgba(142,111,50,.4);border-radius:2px}
+  .flip .face.front,.flip .face.back{background:var(--noise),linear-gradient(90deg,#efe2c8,#f6eedd 30%,#f5ecd9);
+    box-shadow:inset 6px 0 10px rgba(0,0,0,.10)}
+  .flip .face.back{background:var(--noise),linear-gradient(270deg,#efe2c8,#f6eedd 30%,#f5ecd9);box-shadow:inset -6px 0 10px rgba(0,0,0,.10)}
+  .flip .face::after{content:"";position:absolute;left:18%;right:14%;top:22%;height:56%;
+    background:repeating-linear-gradient(transparent 0 13px, rgba(120,90,60,.12) 13px 14px)}
+  .base{position:absolute;inset:0;border-radius:3px 12px 12px 3px;background:var(--noise),linear-gradient(90deg,#e6d6b6,#f5ecd9 12%);
+    box-shadow:0 30px 60px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;
+    color:var(--ink-s);font-size:13px;letter-spacing:.2em}
+  .book.open .leaf.turned{transform:rotateY(-178deg)}
+  .glow{position:absolute;left:50%;top:50%;width:10px;height:10px;border-radius:50%;pointer-events:none;
+    transform:translate(-50%,-50%);box-shadow:0 0 0 0 rgba(236,212,154,0);opacity:0}
+  .book.open .glow{animation:bloom 1.6s ease .5s forwards}
+  @keyframes bloom{0%{opacity:0;box-shadow:0 0 0 0 rgba(236,212,154,.0)}40%{opacity:1;box-shadow:0 0 120px 60px rgba(236,212,154,.45)}100%{opacity:0;box-shadow:0 0 220px 120px rgba(236,212,154,0)}}
 
-  /* ヘッダー */
-  .top{display:flex;justify-content:space-between;align-items:baseline}
-  .top .date{font-size:14px;color:var(--sub)}
+  .cover-panel{width:min(86vw,340px);margin-top:26px;text-align:center;color:var(--gold-l);transition:opacity .4s}
+  .book.open ~ .cover-panel{opacity:0}
+  .cover-panel input{width:100%;font:inherit;font-size:18px;text-align:center;letter-spacing:.25em;text-transform:uppercase;
+    color:var(--gold-l);background:rgba(10,12,34,.55);border:1px solid rgba(201,164,92,.6);border-radius:12px;padding:13px;outline:none}
+  .cover-panel input::placeholder{color:rgba(236,212,154,.45);letter-spacing:.2em}
+  .gold-btn{display:block;width:100%;margin-top:12px;padding:14px;border-radius:12px;font-size:16px;letter-spacing:.2em;color:#2a1f08;
+    background:linear-gradient(180deg,#f1dca3,#c9a45c 60%,#a9853f);box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.5)}
+  .gold-btn:disabled{opacity:.6}
+  .cover-msg{font-size:13px;min-height:1.5em;margin-top:12px;color:#f0c7c7;line-height:1.7}
+  .cover-hint{font-size:12px;letter-spacing:.2em;color:rgba(236,212,154,.7);animation:breathe 2.4s ease-in-out infinite}
+  @keyframes breathe{50%{opacity:.35}}
+  .night-note{font-size:12px;line-height:1.8;color:rgba(236,212,154,.8);background:rgba(10,12,34,.45);border:1px solid rgba(201,164,92,.25);
+    border-radius:12px;padding:10px 12px;margin-top:16px;text-align:left}
 
-  /* きょう */
-  .line{display:block;margin:16px 0}
-  .ln-title{display:inline-block;font-weight:bold;font-size:15px;margin-right:8px}
-  .ln-title::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle}
-  .l1 .ln-title::before{background:var(--sub)}
-  .l2 .ln-title::before{background:var(--rose)}
-  .l3 .ln-title::before{background:var(--gold)}
-  .ln-hint{font-size:12px;color:var(--sub)}
-  .line textarea{margin-top:8px}
-  .saved{font-size:12px;color:var(--sub);text-align:right;min-height:1.4em;margin:-4px 2px 10px}
-  .hitokoto{background:linear-gradient(160deg,#fff 0%,var(--rose-soft) 100%);border-radius:22px;padding:22px 20px;margin:20px 0;
-    text-align:center;border:1px solid #efd5d8;animation:rise .8s ease both}
-  .hitokoto .from{font-size:12px;color:var(--rose);letter-spacing:.2em;margin:0 0 10px}
-  .hitokoto .text{font-size:18px;line-height:1.9;margin:0;white-space:pre-wrap}
+  /* ===== 本の中 ===== */
+  #main{position:relative;z-index:1;padding:calc(14px + env(safe-area-inset-top)) 12px calc(86px + env(safe-area-inset-bottom));
+    animation:appear .8s ease both}
+  @keyframes appear{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+  .desk{max-width:540px;margin:0 auto;perspective:1600px}
+  .page{position:relative;min-height:calc(100vh - 120px);border-radius:4px 14px 14px 4px;padding:26px 22px 30px 30px;
+    background:var(--noise),
+      radial-gradient(ellipse at 100% 0%, rgba(160,120,70,.16), transparent 45%),
+      radial-gradient(ellipse at 100% 100%, rgba(160,120,70,.18), transparent 45%),
+      linear-gradient(90deg, rgba(90,60,30,.18) 0, rgba(90,60,30,0) 26px),
+      var(--paper);
+    box-shadow:0 18px 40px rgba(0,0,0,.45), 0 0 0 1px rgba(120,90,60,.15);
+    transform-origin:left center;}
+  .page::before{content:"";position:absolute;left:-5px;top:8px;bottom:8px;width:5px;border-radius:3px 0 0 3px;
+    background:linear-gradient(90deg,#141733,#2a3170)}
+  .page.turn-out{animation:turnOut .26s ease-in forwards}
+  .page.turn-in{animation:turnIn .34s ease-out}
+  @keyframes turnOut{to{transform:rotateY(-80deg);opacity:.3}}
+  @keyframes turnIn{from{transform:rotateY(70deg);opacity:.3}to{transform:none;opacity:1}}
+
+  .head{text-align:center;margin-bottom:18px}
+  .head .orn{color:var(--gold-d);font-size:13px;letter-spacing:.6em;margin-left:.6em}
+  .head h1{font-size:22px;letter-spacing:.2em;margin:6px 0 4px .2em;font-weight:600}
+  .head .date{font-size:13px;color:var(--ink-s);letter-spacing:.12em}
+  .divider{display:flex;align-items:center;gap:10px;color:var(--gold-d);font-size:12px;margin:14px 0}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(142,111,50,.6),transparent)}
+  .note{font-size:13px;color:var(--ink-s);line-height:1.8;margin:6px 0}
+  .center{text-align:center}
+
+  .line{display:block;margin:18px 0 6px}
+  .ln-title{font-size:16px;font-weight:600;letter-spacing:.12em}
+  .ln-title i{font-style:normal;margin-right:6px}
+  .l1 .ln-title i{color:var(--sage)} .l2 .ln-title i{color:var(--rose)} .l3 .ln-title i{color:var(--amber)}
+  .ln-hint{font-size:12px;color:var(--ink-s);margin-left:8px;letter-spacing:.05em}
+  textarea{display:block;width:100%;margin-top:4px;font:inherit;font-size:16px;color:var(--ink);resize:none;outline:none;border:none;
+    background:repeating-linear-gradient(transparent 0 31px, var(--rule) 31px 32px);line-height:32px;min-height:64px;padding:0 2px;
+    caret-color:var(--rose)}
+  .saved{font-size:12px;color:var(--ink-s);text-align:right;min-height:1.5em;margin:4px 0 12px}
+  .seal-btn{display:block;width:100%;padding:15px;border-radius:999px;font-size:16px;letter-spacing:.25em;color:var(--gold-l);
+    background:radial-gradient(ellipse at 50% 0%, #3a4386, #1d2252 70%);box-shadow:0 8px 18px rgba(20,23,51,.35), inset 0 0 0 1px rgba(201,164,92,.55)}
+  .seal-btn:disabled{opacity:.55}
+  .soft-btn{display:block;width:100%;padding:12px;border-radius:999px;font-size:15px;letter-spacing:.12em;color:var(--ink);
+    background:transparent;box-shadow:inset 0 0 0 1px rgba(142,111,50,.5)}
+
+  .hitokoto{position:relative;margin:24px 4px 6px;padding:24px 20px 20px;text-align:center;border-radius:6px;
+    background:var(--noise),linear-gradient(180deg,#fffaf0,#f7ecd6);
+    box-shadow:0 10px 24px rgba(60,40,20,.18), inset 0 0 0 1px rgba(201,164,92,.6), inset 0 0 0 5px #fffaf0, inset 0 0 0 6px rgba(201,164,92,.35);
+    animation:rise .8s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(14px) rotate(-1deg)}to{opacity:1;transform:none}}
+  .hitokoto .seal{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:32px;height:32px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #c8616f, #8d2f3d);box-shadow:0 2px 6px rgba(0,0,0,.3);color:#f7d9dc;font-size:14px;
+    display:flex;align-items:center;justify-content:center}
+  .hitokoto .text{font-size:18px;line-height:2;margin:4px 0 8px}
+  .hitokoto .text span{opacity:0;animation:ink .5s ease forwards}
+  @keyframes ink{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:none}}
+  .hitokoto .from{font-size:13px;color:var(--ink-s);letter-spacing:.2em;text-align:right;margin:0}
   .piece-msg{margin-top:14px}
-  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  .banner{background:var(--lav);border-radius:16px;padding:12px 14px;font-size:13px;line-height:1.7;margin:14px 0}
-  .banner b{display:block;margin-bottom:4px}
+  .banner{font-size:13px;line-height:1.8;padding:12px 14px;border-radius:8px;margin:10px 0 4px;
+    background:rgba(201,164,92,.13);box-shadow:inset 0 0 0 1px rgba(201,164,92,.35)}
+  .banner b{display:block}
+
+  .sparkle{position:fixed;pointer-events:none;z-index:50;color:var(--gold);font-size:16px;animation:spark 1.4s ease-out forwards}
+  @keyframes spark{0%{opacity:0;transform:translate(0,0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(90deg)}}
 
   /* パズル */
-  .puzzle{position:relative;width:100%;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--lav);
-    box-shadow:0 8px 24px rgba(43,42,76,.12)}
+  .frame{position:relative;padding:10px;border-radius:4px;background:linear-gradient(145deg,#d9b56e,#a9853f 50%,#e3c587);
+    box-shadow:0 10px 26px rgba(60,40,20,.3), inset 0 0 0 1px rgba(255,255,255,.4)}
+  .puzzle{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;background:var(--night2);box-shadow:inset 0 0 0 1px rgba(0,0,0,.3)}
   .puzzle img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr)}
-  .cell{transition:opacity 1.2s ease, transform 1.2s ease;opacity:0}
+  .cell{opacity:0;transition:opacity 1.4s ease}
   .cell.cover{opacity:1;background:
-      radial-gradient(circle at 30% 30%, rgba(255,255,255,.55) 0 1.5px, transparent 2px),
-      radial-gradient(circle at 70% 65%, rgba(255,255,255,.4) 0 1px, transparent 1.5px),
-      linear-gradient(135deg,#3a3866,#2b2a4c);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-  .cell.just{animation:glow 1.6s ease}
-  @keyframes glow{0%{box-shadow:inset 0 0 0 3px var(--gold)}100%{box-shadow:inset 0 0 0 0 transparent}}
-  .count{text-align:center;font-size:15px;margin:14px 0 4px}
-  .count b{font-size:22px;color:var(--rose)}
+      radial-gradient(circle at 30% 35%, rgba(255,240,200,.55) 0 1.2px, transparent 1.8px),
+      radial-gradient(circle at 72% 68%, rgba(255,255,255,.35) 0 1px, transparent 1.5px),
+      linear-gradient(135deg,#2a3170,#161a40);
+    box-shadow:inset 0 0 0 .5px rgba(201,164,92,.35)}
+  .cell.just{animation:glowCell 1.8s ease}
+  @keyframes glowCell{0%{box-shadow:inset 0 0 0 3px var(--gold-l), 0 0 18px var(--gold-l)}100%{box-shadow:none}}
+  .count{text-align:center;font-size:15px;margin:16px 0 4px;letter-spacing:.1em}
+  .count b{font-size:24px;color:var(--rose)}
   .waiting{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;
-    font-size:14px;line-height:1.9;color:var(--ink)}
+    font-size:14px;line-height:2;color:var(--gold-l)}
   .collection{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .collection button{padding:0;border-radius:14px;overflow:hidden;aspect-ratio:1/1;background:var(--lav)}
+  .collection button{padding:4px;border-radius:3px;aspect-ratio:1/1;background:linear-gradient(145deg,#d9b56e,#a9853f);box-shadow:0 4px 10px rgba(60,40,20,.25)}
   .collection img{width:100%;height:100%;object-fit:cover;display:block}
-  .empty{font-size:13px;color:var(--sub);text-align:center;padding:16px 0}
+  .empty{font-size:13px;color:var(--ink-s);text-align:center;padding:16px 0;line-height:1.9}
 
   /* きろく */
-  .log{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:10px 0}
-  .log .d{font-size:13px;color:var(--sub);margin-bottom:8px}
-  .log .r{font-size:14px;line-height:1.7;margin:4px 0;white-space:pre-wrap}
-  .log .r span{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px;color:#fff;vertical-align:1px}
-  .log .r.l1 span{background:var(--sub)} .log .r.l2 span{background:var(--rose)} .log .r.l3 span{background:var(--gold)}
-  .log .h{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:14px;color:var(--rose);line-height:1.7}
+  .entry{min-height:46vh}
+  .entry .d{text-align:center;font-size:15px;letter-spacing:.15em;margin:4px 0 14px}
+  .entry .r{margin:0 0 16px}
+  .entry .r .k{font-size:13px;letter-spacing:.12em;font-weight:600}
+  .entry .r.l1 .k{color:var(--sage)} .entry .r.l2 .k{color:var(--rose)} .entry .r.l3 .k{color:var(--amber)}
+  .entry .r .v{font-size:16px;line-height:32px;white-space:pre-wrap;background:repeating-linear-gradient(transparent 0 31px, var(--rule) 31px 32px);min-height:32px}
+  .entry .h{margin-top:18px;padding:14px;text-align:center;line-height:1.9;font-size:15px;border-radius:6px;background:rgba(201,164,92,.12);box-shadow:inset 0 0 0 1px rgba(201,164,92,.35)}
+  .pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
+  .pager button{flex:none;padding:10px 14px;border-radius:999px;font-size:14px;color:var(--ink);background:transparent;box-shadow:inset 0 0 0 1px rgba(142,111,50,.5)}
+  .pager button:disabled{opacity:.3}
+  .pager .pos{font-size:13px;color:var(--ink-s);letter-spacing:.1em}
 
   /* せってい */
+  .box{border-radius:8px;padding:14px 16px;margin:12px 0;box-shadow:inset 0 0 0 1px rgba(142,111,50,.35);background:rgba(255,250,240,.45)}
+  .box h2{font-size:15px;letter-spacing:.15em;margin:0 0 8px}
   .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;font-size:15px}
-  .row select{width:auto;min-width:130px}
-  .switch{appearance:none;-webkit-appearance:none;width:52px;height:30px;border-radius:999px;background:#d8d2cc;position:relative;transition:.2s;flex:none}
-  .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  select{font:inherit;font-size:16px;color:var(--ink);background:#fffaf0;border:1px solid rgba(142,111,50,.45);border-radius:10px;padding:8px 12px}
+  .switch{appearance:none;-webkit-appearance:none;width:52px;height:30px;border-radius:999px;background:#d7c9ad;position:relative;transition:.2s;flex:none;margin:0}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fffaf0;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
   .switch:checked{background:var(--rose)} .switch:checked::after{left:25px}
-  ol.steps{padding-left:20px;margin:8px 0;font-size:14px;line-height:1.9}
+  ol.steps{padding-left:22px;margin:8px 0;font-size:14px;line-height:2}
 
-  /* タブ */
-  .tabbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,250,.96);backdrop-filter:blur(8px);
-    border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:10}
-  .tabbar button{flex:1;background:none;border-radius:12px;padding:8px 0;font-size:11px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px}
-  .tabbar button .i{font-size:20px;line-height:1}
-  .tabbar button.on{color:var(--ink);font-weight:bold}
+  /* しおり（タブ） */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:4px;
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    background:var(--noise),linear-gradient(180deg,#1f2450,#141733);box-shadow:0 -6px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(201,164,92,.45)}
+  .tabbar button{flex:1;max-width:120px;background:none;color:rgba(236,212,154,.55);font-size:11px;letter-spacing:.12em;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:10px}
+  .tabbar .i{font-size:19px;line-height:1}
+  .tabbar button.on{color:var(--gold-l);text-shadow:0 0 10px rgba(236,212,154,.6)}
 
   /* モーダル・トースト */
-  .modal{position:fixed;inset:0;background:rgba(43,42,76,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:20}
-  .modal .box{background:var(--paper);border-radius:22px;padding:18px;max-width:440px;width:100%;text-align:center;animation:rise .5s ease both}
-  .modal img{width:100%;border-radius:14px;display:block}
-  .modal h3{margin:14px 0 6px;font-size:18px}
-  .modal p{margin:0 0 14px;color:var(--sub);font-size:14px;line-height:1.7}
-  .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;
-    padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:30;max-width:90%;text-align:center}
+  .modal{position:fixed;inset:0;z-index:60;background:rgba(10,12,34,.7);display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal .mbox{width:100%;max-width:440px;text-align:center;border-radius:6px;padding:18px;
+    background:var(--noise),var(--paper);box-shadow:0 20px 50px rgba(0,0,0,.5);animation:rise .5s ease both}
+  .modal img{width:100%;display:block;border:8px solid #c9a45c;border-image:linear-gradient(145deg,#e3c587,#a9853f) 1}
+  .modal h3{margin:14px 0 6px;font-size:18px;letter-spacing:.12em}
+  .modal p{margin:0 0 14px;color:var(--ink-s);font-size:14px;line-height:1.8}
+  .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;
+    background:rgba(20,23,51,.95);color:var(--gold-l);padding:10px 18px;border-radius:999px;font-size:14px;letter-spacing:.05em;
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.5);opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
   .toast.show{opacity:1}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  }
 </style>
 </head>
 <body>
+<div class="stars"></div>
 
-<!-- ログイン -->
-<section id="login" hidden>
-  <div class="wrap">
-    <div class="hero">
-      <div class="moon">🌙</div>
-      <h1>書き換えノート</h1>
-      <p class="lead">毎日の3行で、<br>あなたの物語を少しずつ書き換えていく場所。</p>
+<!-- ===== 表紙 ===== -->
+<section id="coverScreen">
+  <div class="book" id="book">
+    <div class="base">きょうのページ</div>
+    <div class="leaf flip" style="z-index:21"><div class="face front"></div><div class="face back"></div></div>
+    <div class="leaf flip" style="z-index:22"><div class="face front"></div><div class="face back"></div></div>
+    <div class="leaf flip" style="z-index:23"><div class="face front"></div><div class="face back"></div></div>
+    <div class="leaf flip" style="z-index:24"><div class="face front"></div><div class="face back"></div></div>
+    <div class="leaf flip" style="z-index:25"><div class="face front"></div><div class="face back"></div></div>
+    <div class="leaf flip" style="z-index:26"><div class="face front"></div><div class="face back"></div></div>
+    <div class="leaf flip" style="z-index:27"><div class="face front"></div><div class="face back"></div></div>
+    <div class="leaf cover-leaf">
+      <div class="face front cover-front">
+        <span class="corner tl">✦</span><span class="corner tr">✦</span><span class="corner bl">✦</span><span class="corner br">✦</span>
+        <div class="emblem">☾</div>
+        <h1 class="cover-title">書き換えノート</h1>
+        <div class="cover-sub">REWRITE&nbsp;NOTE</div>
+        <div class="cover-line"></div>
+        <div class="cover-name" id="coverName"></div>
+      </div>
+      <div class="face back cover-back"></div>
     </div>
-    <input id="keyInput" type="text" placeholder="あいことば" autocomplete="off" autocapitalize="characters" spellcheck="false">
-    <button id="loginBtn" class="primary">はじめる</button>
-    <p class="err" id="loginErr"></p>
-    <div class="banner" id="loginInstall" hidden>
-      <b>📱 ホーム画面に追加して使ってね</b>
-      Safariの下にある「共有」ボタン（□に↑）→「ホーム画面に追加」。<br>
-      ホーム画面のアイコンから開くと、通知も受け取れます。
+    <div class="glow"></div>
+  </div>
+
+  <div class="cover-panel" id="coverPanel">
+    <div id="loginArea" hidden>
+      <input id="keyInput" type="text" placeholder="あいことば" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <button id="loginBtn" class="gold-btn">本をひらく</button>
+      <div class="cover-msg" id="loginErr"></div>
+      <div class="night-note" id="loginInstall" hidden>
+        📱 先に<b>ホーム画面に追加</b>してから使ってね。<br>
+        Safariの「共有」ボタン（□に↑）→「ホーム画面に追加」→ アイコンから開いて、あいことばを入れます。
+      </div>
     </div>
+    <div class="cover-hint" id="openingHint" hidden>ページをひらいています…</div>
   </div>
 </section>
 
-<!-- メイン -->
+<!-- ===== 本の中 ===== -->
 <main id="main" hidden>
-  <div class="wrap">
+  <div class="desk">
+    <div class="page" id="page">
 
-    <!-- きょう -->
-    <section id="tab-today" class="tab">
-      <div class="top"><h1>今日の3行</h1><span class="date" id="todayLabel"></span></div>
-      <p class="note">1行だけでも、空けたままでも大丈夫。</p>
-
-      <div class="banner" id="installBanner" hidden>
-        <b>📱 ホーム画面に追加すると、通知が届くよ</b>
-        Safariの「共有」ボタン（□に↑）→「ホーム画面に追加」。くわしくは「せってい」へ。
-      </div>
-
-      <label class="line l1"><span class="ln-title">そのまま</span><span class="ln-hint">今日あったこと、感じたこと</span>
-        <textarea id="f-a" rows="2"></textarea></label>
-      <label class="line l2"><span class="ln-title">ちがう見方</span><span class="ln-hint">別の角度から見ると？</span>
-        <textarea id="f-b" rows="2"></textarea></label>
-      <label class="line l3"><span class="ln-title">これから</span><span class="ln-hint">次はどうしたい？</span>
-        <textarea id="f-c" rows="2"></textarea></label>
-      <p class="saved" id="savedState"></p>
-
-      <button id="deliverBtn" class="primary">とどける</button>
-      <p class="note" style="text-align:center">🎤 キーボードのマイクで、話して入力もできます</p>
-
-      <div class="hitokoto" id="hitokotoCard" hidden>
-        <p class="from">ゆわより</p>
-        <p class="text" id="hitokotoText"></p>
-        <div class="piece-msg" id="pieceMsg" hidden>
-          <p class="note" id="pieceMsgText"></p>
-          <button class="soft" data-go="puzzle">パズルを見る 🧩</button>
+      <!-- きょう -->
+      <section id="tab-today" class="tab">
+        <div class="head">
+          <div class="orn">✦ ✦ ✦</div>
+          <h1>今日の3行</h1>
+          <div class="date" id="todayLabel"></div>
         </div>
-      </div>
-    </section>
+        <p class="note center">1行だけでも、空けたままでも大丈夫。</p>
 
-    <!-- パズル -->
-    <section id="tab-puzzle" class="tab" hidden>
-      <div class="top"><h1>パズル</h1><span class="date" id="picLabel"></span></div>
-      <p class="note">書いた日に、ピースがひとつ開きます。書けない日は、そのままで大丈夫。</p>
-      <div class="puzzle" id="puzzle">
-        <img id="puzzleImg" alt="">
-        <div class="grid" id="grid"></div>
-        <div class="waiting" id="waiting" hidden></div>
-      </div>
-      <p class="count" id="pieceCount"></p>
-      <h2>コレクション</h2>
-      <div class="collection" id="collection"></div>
-    </section>
-
-    <!-- きろく -->
-    <section id="tab-log" class="tab" hidden>
-      <div class="top"><h1>きろく</h1></div>
-      <div id="logList"></div>
-    </section>
-
-    <!-- せってい -->
-    <section id="tab-settings" class="tab" hidden>
-      <div class="top"><h1>せってい</h1></div>
-
-      <h2>リマインド通知</h2>
-      <div class="card">
-        <p class="note" id="pushStatus" style="margin-top:0"></p>
-        <button id="pushBtn" class="primary" hidden>通知を許可する</button>
-        <div id="installGuide" hidden>
-          <ol class="steps">
-            <li>このページを<b>Safari</b>で開く</li>
-            <li>下の「共有」ボタン（□に↑）をタップ</li>
-            <li>「ホーム画面に追加」→「追加」</li>
-            <li>ホーム画面の<b>書き換えノート</b>のアイコンから開く</li>
-            <li>この画面で「通知を許可する」をタップ</li>
-          </ol>
+        <div class="banner" id="installBanner" hidden>
+          <b>📱 ホーム画面に追加すると、通知が届くよ</b>
+          Safariの「共有」ボタン（□に↑）→「ホーム画面に追加」。くわしくは「せってい」へ。
         </div>
-        <div class="row"><span>毎日知らせる</span><input type="checkbox" class="switch" id="notifyOn"></div>
-        <div class="row"><span>時間</span><select id="notifyHour"></select></div>
-        <p class="note">その日もう書いていたら、通知は届きません。</p>
-      </div>
 
-      <h2>この端末</h2>
-      <div class="card">
-        <p style="margin-top:0"><span id="userName"></span>さんで使っています</p>
-        <button id="logoutBtn" class="ghost">この端末からログアウト</button>
-      </div>
-    </section>
+        <label class="line l1"><span class="ln-title"><i>❦</i>そのまま</span><span class="ln-hint">今日あったこと、感じたこと</span>
+          <textarea id="f-a" rows="2"></textarea></label>
+        <label class="line l2"><span class="ln-title"><i>❦</i>ちがう見方</span><span class="ln-hint">別の角度から見ると？</span>
+          <textarea id="f-b" rows="2"></textarea></label>
+        <label class="line l3"><span class="ln-title"><i>❦</i>これから</span><span class="ln-hint">次はどうしたい？</span>
+          <textarea id="f-c" rows="2"></textarea></label>
+        <p class="saved" id="savedState"></p>
 
+        <button id="deliverBtn" class="seal-btn">✦ とどける ✦</button>
+        <p class="note center">🎤 マイクで話して書くこともできます</p>
+
+        <div class="hitokoto" id="hitokotoCard" hidden>
+          <div class="seal">✿</div>
+          <p class="text" id="hitokotoText"></p>
+          <p class="from">— ゆわより</p>
+          <div class="piece-msg" id="pieceMsg" hidden>
+            <p class="note center" id="pieceMsgText"></p>
+            <button class="soft-btn" data-go="puzzle">パズルを見る ✧</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- パズル -->
+      <section id="tab-puzzle" class="tab" hidden>
+        <div class="head">
+          <div class="orn">✦ ✦ ✦</div>
+          <h1>魔法のパズル</h1>
+          <div class="date" id="picLabel"></div>
+        </div>
+        <p class="note center">書いた日に、ピースがひとつ開きます。<br>書けない日は、そのままで大丈夫。</p>
+        <div class="frame">
+          <div class="puzzle">
+            <img id="puzzleImg" alt="">
+            <div class="grid" id="grid"></div>
+            <div class="waiting" id="waiting" hidden></div>
+          </div>
+        </div>
+        <p class="count" id="pieceCount"></p>
+        <div class="divider">コレクション</div>
+        <div class="collection" id="collection"></div>
+      </section>
+
+      <!-- きろく -->
+      <section id="tab-log" class="tab" hidden>
+        <div class="head">
+          <div class="orn">✦ ✦ ✦</div>
+          <h1>これまでのページ</h1>
+        </div>
+        <div id="logBox"></div>
+      </section>
+
+      <!-- せってい -->
+      <section id="tab-settings" class="tab" hidden>
+        <div class="head">
+          <div class="orn">✦ ✦ ✦</div>
+          <h1>せってい</h1>
+        </div>
+        <div class="box">
+          <h2>リマインド通知</h2>
+          <p class="note" id="pushStatus" style="margin-top:0"></p>
+          <button id="pushBtn" class="seal-btn" hidden>通知を許可する</button>
+          <div id="installGuide" hidden>
+            <ol class="steps">
+              <li>このページを<b>Safari</b>で開く</li>
+              <li>下の「共有」ボタン（□に↑）をタップ</li>
+              <li>「ホーム画面に追加」→「追加」</li>
+              <li>ホーム画面の<b>書き換えノート</b>のアイコンから開く</li>
+              <li>この画面で「通知を許可する」をタップ</li>
+            </ol>
+          </div>
+          <div class="row"><span>毎日知らせる</span><input type="checkbox" class="switch" id="notifyOn"></div>
+          <div class="row"><span>時間</span><select id="notifyHour"></select></div>
+          <p class="note">その日もう書いていたら、通知は届きません。</p>
+        </div>
+        <div class="box">
+          <h2>この本の持ち主</h2>
+          <p style="margin:4px 0 12px"><span id="userName"></span>さん</p>
+          <button id="logoutBtn" class="soft-btn">この端末からログアウト</button>
+        </div>
+      </section>
+
+    </div>
   </div>
 
   <nav class="tabbar">
-    <button data-tab="today" class="on"><span class="i">✏️</span>きょう</button>
-    <button data-tab="puzzle"><span class="i">🧩</span>パズル</button>
-    <button data-tab="log"><span class="i">📖</span>きろく</button>
-    <button data-tab="settings"><span class="i">⚙️</span>せってい</button>
+    <button data-tab="today" class="on"><span class="i">✒</span>きょう</button>
+    <button data-tab="puzzle"><span class="i">✧</span>パズル</button>
+    <button data-tab="log"><span class="i">❦</span>きろく</button>
+    <button data-tab="settings"><span class="i">☾</span>せってい</button>
   </nav>
 </main>
 
 <div class="modal" id="modal" hidden>
-  <div class="box">
+  <div class="mbox">
     <img id="modalImg" alt="">
     <h3 id="modalTitle"></h3>
     <p id="modalText"></p>
-    <button class="primary" id="modalClose">とじる</button>
+    <button class="seal-btn" id="modalClose">とじる</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -256,17 +407,15 @@
 (function(){
   const CFG = window.KAKIKAE_CONFIG || {};
   const $ = s => document.querySelector(s);
-  const LS_KEY = 'kn_key', LS_DRAFT = 'kn_draft';
+  const LS_KEY = 'kn_key', LS_DRAFT = 'kn_draft', LS_OPENED = 'kn_opened';
   const PIECES = 25;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let KEY = localStorage.getItem(LS_KEY) || '';
-  let ST = null;          // 利用者の状態
-  let TODAY = '';
-  let delivered = false;
-  let saveTimer = null;
-  let osReady = false;
+  let ST = null, TODAY = '', delivered = false, saveTimer = null, osReady = false;
+  let currentTab = 'today', LOG = [], logIdx = 0;
 
   /* ---------- 通信 ---------- */
   async function api(action, data){
@@ -277,18 +426,17 @@
     });
     const j = await res.json();
     if (!j.ok) { const e = new Error(j.error || 'error'); e.code = j.error; throw e; }
-    if (j.state) { ST = j.state; }
-    if (j.today) { TODAY = j.today; }
+    if (j.state) ST = j.state;
+    if (j.today) TODAY = j.today;
     return j;
   }
-
   function handleErr(e){
     if (e && e.code === 'auth') { logout('あいことばが使えなくなりました。ゆわに確認してね。'); return; }
     toast('うまくつながりませんでした。電波のよいところで、もう一度ためしてね。');
     console.log(e);
   }
 
-  /* ---------- 表示の道具 ---------- */
+  /* ---------- 道具 ---------- */
   function toast(msg){
     const t = $('#toast'); t.textContent = msg; t.classList.add('show');
     clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600);
@@ -299,7 +447,7 @@
     if (!key) return '';
     const p = key.split('-').map(Number);
     const w = '日月火水木金土'[new Date(Date.UTC(p[0], p[1]-1, p[2])).getUTCDay()];
-    return p[1] + '月' + p[2] + '日（' + w + '）';
+    return p[0] + '年' + p[1] + '月' + p[2] + '日（' + w + '）';
   }
   function showModal(img, title, text){
     $('#modalImg').src = img || ''; $('#modalImg').hidden = !img;
@@ -307,9 +455,76 @@
     $('#modal').hidden = false;
   }
   $('#modalClose').onclick = () => { $('#modal').hidden = true; };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
 
-  /* ---------- タブ ---------- */
-  function go(tab){
+  function sparkle(el){
+    if (reduced) return;
+    const r = el.getBoundingClientRect();
+    for (let i = 0; i < 14; i++) {
+      const s = document.createElement('span');
+      s.className = 'sparkle';
+      s.textContent = i % 3 ? '✦' : '✧';
+      s.style.left = (r.left + r.width / 2 + (Math.random() - .5) * r.width * .8) + 'px';
+      s.style.top = (r.top + r.height / 2) + 'px';
+      s.style.setProperty('--dx', ((Math.random() - .5) * 160) + 'px');
+      s.style.setProperty('--dy', (-60 - Math.random() * 140) + 'px');
+      s.style.animationDelay = (Math.random() * .3) + 's';
+      s.style.fontSize = (10 + Math.random() * 12) + 'px';
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 2000);
+    }
+  }
+
+  /* ---------- 表紙と、本をひらく魔法 ---------- */
+  function showCover(mode){
+    $('#coverScreen').hidden = false; $('#coverScreen').classList.remove('fade');
+    $('#book').classList.remove('open');
+    document.querySelectorAll('.leaf').forEach(l => { l.classList.remove('turned'); l.style.transitionDelay = ''; l.style.transitionDuration = ''; });
+    $('#main').hidden = true;
+    $('#loginArea').hidden = (mode !== 'login');
+    $('#openingHint').hidden = (mode !== 'opening');
+    $('#loginInstall').hidden = !(mode === 'login' && isIOS && !isStandalone);
+    if (mode === 'login') $('#coverName').textContent = '';
+  }
+
+  async function openBook(){
+    $('#coverName').textContent = ST && ST.name ? ST.name + ' さんの本' : '';
+    $('#loginArea').hidden = true; $('#openingHint').hidden = true;
+    if (reduced) { enter(); return; }
+    const first = !localStorage.getItem(LS_OPENED);
+    const speed = first ? 1 : 0.55;
+    await wait(first ? 650 : 250);
+    const book = $('#book');
+    const cover = document.querySelector('.cover-leaf');
+    const flips = Array.from(document.querySelectorAll('.leaf.flip')).reverse();
+    cover.style.transitionDuration = (1.0 * speed) + 's';
+    book.style.transitionDuration = (1.0 * speed) + 's';
+    book.classList.add('open');
+    cover.classList.add('turned');
+    flips.forEach((l, i) => {
+      l.style.transitionDuration = (0.75 * speed) + 's';
+      l.style.transitionDelay = ((0.45 + i * 0.16) * speed) + 's';
+      l.classList.add('turned');
+    });
+    await wait((0.45 + flips.length * 0.16 + 0.75) * speed * 1000);
+    localStorage.setItem(LS_OPENED, '1');
+    enter(true);
+  }
+
+  function enter(fromBook){
+    const cs = $('#coverScreen');
+    if (fromBook) { cs.classList.add('fade'); setTimeout(() => { cs.hidden = true; }, 700); }
+    else cs.hidden = true;
+    $('#main').hidden = false;
+    $('#installBanner').hidden = !(isIOS && !isStandalone);
+    showTab('today');
+    loadToday();
+    linkPush();
+  }
+
+  /* ---------- しおり（タブ） ---------- */
+  function showTab(tab){
+    currentTab = tab;
     document.querySelectorAll('.tab').forEach(s => s.hidden = (s.id !== 'tab-' + tab));
     document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     window.scrollTo(0, 0);
@@ -317,8 +532,19 @@
     if (tab === 'log') loadHistory();
     if (tab === 'settings') renderSettings();
   }
-  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go(b.dataset.tab));
-  document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
+  async function turnTo(tab){
+    if (tab === currentTab) return;
+    const p = $('#page');
+    if (reduced) { showTab(tab); return; }
+    p.classList.remove('turn-in'); p.classList.add('turn-out');
+    await wait(240);
+    p.classList.remove('turn-out');
+    showTab(tab);
+    void p.offsetWidth; p.classList.add('turn-in');
+    setTimeout(() => p.classList.remove('turn-in'), 400);
+  }
+  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => turnTo(b.dataset.tab));
+  document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => turnTo(b.dataset.go));
 
   /* ---------- ログイン ---------- */
   function normKey(k){ return String(k || '').normalize('NFKC').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
@@ -331,7 +557,7 @@
     try {
       await api('login');
       localStorage.setItem(LS_KEY, KEY);
-      enter();
+      openBook();
     } catch (e) {
       KEY = '';
       $('#loginErr').textContent = (e.code === 'auth') ? 'あいことばが違うみたい。もう一度見てみてね。' : 'うまくつながりませんでした。もう一度ためしてね。';
@@ -343,65 +569,47 @@
   function logout(msg){
     localStorage.removeItem(LS_KEY);
     KEY = ''; ST = null;
-    $('#main').hidden = true; $('#login').hidden = false;
-    $('#loginInstall').hidden = !(isIOS && !isStandalone);
+    showCover('login');
     $('#loginErr').textContent = msg || '';
     if (osReady && window.OneSignal) { try { window.OneSignal.logout(); } catch (e) {} }
   }
   $('#logoutBtn').onclick = () => logout();
 
-  function enter(){
-    $('#login').hidden = true; $('#main').hidden = false;
-    $('#installBanner').hidden = !(isIOS && !isStandalone);
-    go('today');
-    loadToday();
-    linkPush();
-  }
-
   /* ---------- きょう ---------- */
   const fields = ['a', 'b', 'c'];
   function getFields(){ const o = {}; fields.forEach(f => o[f] = $('#f-' + f).value); return o; }
   function setFields(o){ fields.forEach(f => { $('#f-' + f).value = (o && o[f]) || ''; autosize($('#f-' + f)); }); }
-  function autosize(t){ t.style.height = 'auto'; t.style.height = Math.max(64, t.scrollHeight + 2) + 'px'; }
-
+  function autosize(t){ t.style.height = 'auto'; t.style.height = Math.max(64, Math.ceil((t.scrollHeight) / 32) * 32) + 'px'; }
   function readDraft(){ try { return JSON.parse(localStorage.getItem(LS_DRAFT) || 'null'); } catch (e) { return null; } }
   function writeDraft(){ const d = getFields(); d.day = TODAY; d.t = Date.now(); localStorage.setItem(LS_DRAFT, JSON.stringify(d)); }
 
   async function loadToday(){
-    $('#savedState').textContent = '読みこみ中…';
+    $('#savedState').textContent = 'ページを読みこみ中…';
     try {
       const j = await api('today');
       $('#todayLabel').textContent = dayLabel(TODAY);
-      const e = j.entry;
-      const d = readDraft();
+      const e = j.entry, d = readDraft();
       const serverEmpty = !e || !(e.a || e.b || e.c);
-      if (serverEmpty && d && d.day === TODAY && (d.a || d.b || d.c)) {
-        setFields(d); scheduleSave(0);
-      } else {
-        setFields(e);
-      }
+      if (serverEmpty && d && d.day === TODAY && (d.a || d.b || d.c)) { setFields(d); scheduleSave(0); }
+      else setFields(e);
       delivered = !!(e && e.delivered);
-      if (delivered) showHitokoto(e.hitokoto, null); else $('#hitokotoCard').hidden = true;
+      if (delivered) showHitokoto(e.hitokoto, null, false); else $('#hitokotoCard').hidden = true;
       updateDeliverBtn();
       $('#savedState').textContent = '';
     } catch (err) { $('#savedState').textContent = ''; handleErr(err); }
   }
-
-  function updateDeliverBtn(){ $('#deliverBtn').textContent = delivered ? '書き直しを保存する' : 'とどける'; }
+  function updateDeliverBtn(){ $('#deliverBtn').textContent = delivered ? '書き直しを保存する' : '✦ とどける ✦'; }
 
   function scheduleSave(ms){
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
-      try {
-        await api('save', getFields());
-        $('#savedState').textContent = '✓ 保存しました';
-      } catch (e) {
+      try { await api('save', getFields()); $('#savedState').textContent = '✓ 保存しました'; }
+      catch (e) {
         if (e && e.code === 'auth') return handleErr(e);
         $('#savedState').textContent = 'この端末に保存中（つながったら送ります）';
       }
     }, ms === undefined ? 1500 : ms);
   }
-
   fields.forEach(f => {
     const t = $('#f-' + f);
     t.addEventListener('input', () => { autosize(t); writeDraft(); $('#savedState').textContent = '…'; scheduleSave(); });
@@ -411,69 +619,67 @@
     const v = getFields();
     if (!(v.a.trim() || v.b.trim() || v.c.trim())) { toast('1行だけでも書いてみてね🌸'); return; }
     clearTimeout(saveTimer);
-    const btn = $('#deliverBtn'); btn.disabled = true; btn.textContent = 'とどけています…';
+    const btn = $('#deliverBtn'); btn.disabled = true; btn.textContent = '魔法をかけています…';
     try {
       const j = await api('deliver', v);
       $('#savedState').textContent = '✓ 保存しました';
-      if (j.already) {
-        toast('書き直しを保存しました');
-      } else {
+      if (j.already) toast('書き直しを保存しました');
+      else {
         delivered = true;
-        showHitokoto(j.hitokoto, j);
-        if (j.completed) {
-          setTimeout(() => showModal(picSrc(j.completed), '絵が完成しました 🌸', '25日分のあなたが、この1枚になりました。コレクションにしまっておくね。'), 1400);
-        }
+        sparkle(btn);
+        showHitokoto(j.hitokoto, j, true);
+        if (j.completed) setTimeout(() => showModal(picSrc(j.completed), '絵が完成しました ✦', '25日分のあなたが、この1枚になりました。コレクションにしまっておくね。'), 2600);
       }
     } catch (e) { handleErr(e); }
     btn.disabled = false; updateDeliverBtn();
   };
 
-  function showHitokoto(text, res){
-    $('#hitokotoText').textContent = text || '';
+  function showHitokoto(text, res, animate){
+    const box = $('#hitokotoText');
+    box.innerHTML = '';
+    const chars = Array.from(text || '');
+    if (animate && !reduced) {
+      chars.forEach((ch, i) => { const s = document.createElement('span'); s.textContent = ch; s.style.animationDelay = (0.6 + i * 0.055) + 's'; box.appendChild(s); });
+    } else box.textContent = text || '';
     const card = $('#hitokotoCard');
     card.hidden = false; card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
     const pm = $('#pieceMsg');
-    if (res && (res.piece !== null && res.piece !== undefined || res.banked)) {
+    if (res && ((res.piece !== null && res.piece !== undefined) || res.banked)) {
       pm.hidden = false;
       $('#pieceMsgText').textContent = res.banked
         ? 'ピースをひとつ、大切にとっておくね。次の絵ができたら開きます。'
         : (res.completed ? '最後のピースが開いて、絵が完成したよ！' : 'パズルのピースがひとつ開いたよ。');
       renderPuzzle._just = (res.completed ? null : res.piece);
-    } else {
-      pm.hidden = true;
-    }
-    if (res) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    } else pm.hidden = true;
+    if (res) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
   }
 
   /* ---------- パズル ---------- */
   function renderPuzzle(){
     if (!ST) return;
-    const grid = $('#grid'), img = $('#puzzleImg'), wait = $('#waiting');
+    const grid = $('#grid'), img = $('#puzzleImg'), wt = $('#waiting');
     grid.innerHTML = '';
     const just = renderPuzzle._just; renderPuzzle._just = null;
     if (ST.pic > ST.picCount) {
-      img.hidden = true; wait.hidden = false;
-      wait.innerHTML = '次の絵を、いま準備しています🌙<br>書いた日のピースは、ちゃんととっておくね。' +
-        (ST.bank ? '<br><br>とってあるピース：' + ST.bank + 'こ' : '');
-      $('#picLabel').textContent = '';
-      $('#pieceCount').textContent = '';
+      img.hidden = true; wt.hidden = false;
+      wt.innerHTML = '次の絵を、いま描いています ☾<br>書いた日のピースは、ちゃんととっておくね。' + (ST.bank ? '<br><br>とってあるピース：' + ST.bank + 'こ' : '');
+      $('#picLabel').textContent = ''; $('#pieceCount').textContent = '';
     } else {
-      img.hidden = false; wait.hidden = true;
+      img.hidden = false; wt.hidden = true;
       img.src = picSrc(ST.pic);
-      $('#picLabel').textContent = ST.pic + '枚目';
+      $('#picLabel').textContent = ST.pic + '枚目の絵';
       for (let i = 0; i < PIECES; i++) {
         const c = document.createElement('div');
         c.className = 'cell';
-        const open = ST.opened.indexOf(i) >= 0;
-        if (!open || i === just) c.classList.add('cover');
+        if (ST.opened.indexOf(i) < 0 || i === just) c.classList.add('cover');
         grid.appendChild(c);
-        if (i === just) setTimeout(() => { c.classList.remove('cover'); c.classList.add('just'); }, 500);
+        if (i === just) setTimeout(() => { c.classList.remove('cover'); c.classList.add('just'); }, 600);
       }
       $('#pieceCount').innerHTML = '<b>' + ST.opened.length + '</b> / ' + PIECES + ' ピース';
     }
     const col = $('#collection');
     col.innerHTML = '';
-    if (!ST.done.length) { col.innerHTML = '<p class="empty" style="grid-column:1/-1">完成した絵が、ここに並んでいきます。</p>'; }
+    if (!ST.done.length) col.innerHTML = '<p class="empty" style="grid-column:1/-1">完成した絵が、ここに並んでいきます。</p>';
     ST.done.slice().reverse().forEach(n => {
       const b = document.createElement('button');
       b.innerHTML = '<img alt="" src="' + picSrc(n) + '">';
@@ -482,33 +688,59 @@
     });
   }
 
-  /* ---------- きろく ---------- */
+  /* ---------- きろく（ページをめくって読む） ---------- */
   async function loadHistory(){
-    const box = $('#logList');
-    box.innerHTML = '<p class="empty">読みこみ中…</p>';
+    const box = $('#logBox');
+    box.innerHTML = '<p class="empty">ページを読みこみ中…</p>';
     try {
       const j = await api('history');
-      if (!j.list.length) { box.innerHTML = '<p class="empty">書いた日の記録が、ここに残っていきます。</p>'; return; }
-      box.innerHTML = j.list.map(e =>
-        '<div class="log"><div class="d">' + esc(dayLabel(e.day)) + '</div>' +
-        (e.a ? '<p class="r l1"><span>そのまま</span>' + esc(e.a) + '</p>' : '') +
-        (e.b ? '<p class="r l2"><span>ちがう見方</span>' + esc(e.b) + '</p>' : '') +
-        (e.c ? '<p class="r l3"><span>これから</span>' + esc(e.c) + '</p>' : '') +
-        (e.hitokoto ? '<div class="h">🌸 ' + esc(e.hitokoto) + '</div>' : '') +
-        '</div>').join('');
+      LOG = j.list.slice().reverse();   // 古い → 新しい（本の順番）
+      logIdx = LOG.length - 1;          // いちばん新しいページから
+      renderLog(false);
     } catch (e) { box.innerHTML = ''; handleErr(e); }
   }
+  function renderLog(anim){
+    const box = $('#logBox');
+    if (!LOG.length) { box.innerHTML = '<p class="empty">書いた日のページが、ここに綴じられていきます。</p>'; return; }
+    const e = LOG[logIdx];
+    box.innerHTML =
+      '<div class="entry"><div class="d">❦ ' + esc(dayLabel(e.day)) + ' ❦</div>' +
+      '<div class="r l1"><div class="k">そのまま</div><div class="v">' + esc(e.a) + '</div></div>' +
+      '<div class="r l2"><div class="k">ちがう見方</div><div class="v">' + esc(e.b) + '</div></div>' +
+      '<div class="r l3"><div class="k">これから</div><div class="v">' + esc(e.c) + '</div></div>' +
+      (e.hitokoto ? '<div class="h">' + esc(e.hitokoto) + '<br><small style="color:var(--ink-s)">— ゆわより</small></div>' : '') +
+      '</div>' +
+      '<div class="pager"><button id="prevDay"' + (logIdx <= 0 ? ' disabled' : '') + '>‹ 前の日</button>' +
+      '<span class="pos">' + (logIdx + 1) + ' / ' + LOG.length + '</span>' +
+      '<button id="nextDay"' + (logIdx >= LOG.length - 1 ? ' disabled' : '') + '>次の日 ›</button></div>';
+    $('#prevDay').onclick = () => flipLog(-1);
+    $('#nextDay').onclick = () => flipLog(1);
+    if (anim) { const p = $('#page'); void p.offsetWidth; p.classList.add('turn-in'); setTimeout(() => p.classList.remove('turn-in'), 400); }
+  }
+  async function flipLog(d){
+    const n = logIdx + d;
+    if (n < 0 || n >= LOG.length) return;
+    const p = $('#page');
+    if (!reduced) { p.classList.add('turn-out'); await wait(240); p.classList.remove('turn-out'); }
+    logIdx = n; window.scrollTo(0, 0); renderLog(!reduced);
+  }
+  (function swipe(){
+    let x0 = null, y0 = null;
+    const el = $('#page');
+    el.addEventListener('touchstart', e => { if (currentTab !== 'log') return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    el.addEventListener('touchend', e => {
+      if (currentTab !== 'log' || x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) flipLog(dx > 0 ? -1 : 1);
+    }, { passive: true });
+  })();
 
   /* ---------- せってい ---------- */
   (function buildHours(){
     const s = $('#notifyHour');
-    for (let h = 0; h < 24; h++) {
-      const o = document.createElement('option');
-      o.value = h; o.textContent = h + ':00';
-      s.appendChild(o);
-    }
+    for (let h = 0; h < 24; h++) { const o = document.createElement('option'); o.value = h; o.textContent = h + ':00'; s.appendChild(o); }
   })();
-
   function renderSettings(){
     if (!ST) return;
     $('#userName').textContent = ST.name;
@@ -516,7 +748,6 @@
     $('#notifyHour').value = String(ST.notifyHour);
     updatePushUI();
   }
-
   async function saveNotify(){
     try { await api('notify', { on: $('#notifyOn').checked, hour: Number($('#notifyHour').value) }); toast('保存しました'); }
     catch (e) { handleErr(e); }
@@ -544,12 +775,10 @@
       updatePushUI();
     });
   }
-
   function linkPush(){
     if (!osReady || !ST || !window.OneSignal) return;
     try { window.OneSignal.login(ST.userId); } catch (e) { console.log(e); }
   }
-
   function updatePushUI(){
     const s = $('#pushStatus'), b = $('#pushBtn');
     $('#installGuide').hidden = !(isIOS && !isStandalone);
@@ -562,31 +791,28 @@
     else if (p === 'denied') s.textContent = '通知がブロックされています。端末の「設定」→「通知」から、書き換えノートを許可してね。';
     else { s.textContent = '通知を受け取るには、許可をお願いします。'; b.hidden = false; }
   }
-
   $('#pushBtn').onclick = async () => {
     try {
-      if (osReady && window.OneSignal) {
-        await window.OneSignal.Notifications.requestPermission();
-      } else if ('Notification' in window) {
-        await Notification.requestPermission();
-      }
+      if (osReady && window.OneSignal) await window.OneSignal.Notifications.requestPermission();
+      else if ('Notification' in window) await Notification.requestPermission();
     } catch (e) { console.log(e); }
     linkPush(); updatePushUI();
-    if ('Notification' in window && Notification.permission === 'granted') toast('通知がオンになりました🌸');
+    if ('Notification' in window && Notification.permission === 'granted') toast('通知がオンになりました ✦');
   };
 
   /* ---------- はじまり ---------- */
   initPush();
   if (!CFG.GAS_URL || /ここに/.test(CFG.GAS_URL)) {
-    $('#login').hidden = false;
-    $('#loginErr').textContent = '（準備中：config.js にGASのURLを入れてね）';
+    showCover('login');
+    $('#loginErr').textContent = '（準備中：もうすぐ本がひらけるようになります）';
   } else if (KEY) {
-    api('login').then(enter).catch(e => {
+    showCover('opening');
+    api('login').then(openBook).catch(e => {
       if (e && e.code === 'auth') logout('');
-      else { enter(); }
+      else openBook();
     });
   } else {
-    logout('');
+    showCover('login');
   }
 })();
 </script>
