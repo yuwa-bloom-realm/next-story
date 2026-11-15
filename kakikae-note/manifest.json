@@ -1,0 +1,13 @@
+{
+  "name": "書き換えノート",
+  "short_name": "書き換えノート",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f3ee",
+  "theme_color": "#2b2a4c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

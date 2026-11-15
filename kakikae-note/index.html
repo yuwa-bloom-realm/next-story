@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>書き換えノート</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2b2a4c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="書き換えノート">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<script src="config.js"></script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<style>
+  :root{
+    --bg:#f8f3ee; --paper:#fffdfa; --ink:#2b2a4c; --sub:#7a7690;
+    --rose:#c97b84; --rose-soft:#f3e1e3; --gold:#d9a441; --lav:#e9e3f3; --line:#eadfd6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+    -webkit-text-size-adjust:100%;}
+  body{padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+  [hidden]{display:none !important}
+  .wrap{max-width:520px;margin:0 auto;padding:20px 18px 24px;}
+  h1{font-size:22px;letter-spacing:.08em;margin:0}
+  h2{font-size:16px;margin:26px 0 10px;letter-spacing:.06em}
+  .note{font-size:13px;color:var(--sub);line-height:1.7;margin:8px 0}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;}
+  button{font:inherit;cursor:pointer;border:none;border-radius:999px;padding:14px 20px;font-size:16px;}
+  .primary{background:var(--ink);color:#fff;width:100%;letter-spacing:.1em;box-shadow:0 6px 16px rgba(43,42,76,.18)}
+  .primary:disabled{opacity:.5}
+  .ghost{background:transparent;color:var(--ink);border:1px solid var(--line);width:100%}
+  .soft{background:var(--rose-soft);color:var(--ink);width:100%}
+  input[type=text],textarea,select{font:inherit;font-size:16px;color:var(--ink);width:100%;
+    border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;outline:none;}
+  textarea{resize:none;line-height:1.7;min-height:64px}
+  textarea:focus,input:focus,select:focus{border-color:var(--rose)}
+
+  /* ログイン */
+  #login .hero{text-align:center;padding:40px 0 10px}
+  #login .moon{font-size:42px}
+  #login h1{margin-top:10px}
+  #login p.lead{color:var(--sub);font-size:14px;line-height:1.8}
+  #keyInput{text-align:center;letter-spacing:.2em;text-transform:uppercase;margin:18px 0 12px}
+  .err{color:#b4505c;font-size:14px;text-align:center;min-height:1.4em}
+
+  /* ヘッダー */
+  .top{display:flex;justify-content:space-between;align-items:baseline}
+  .top .date{font-size:14px;color:var(--sub)}
+
+  /* きょう */
+  .line{display:block;margin:16px 0}
+  .ln-title{display:inline-block;font-weight:bold;font-size:15px;margin-right:8px}
+  .ln-title::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle}
+  .l1 .ln-title::before{background:var(--sub)}
+  .l2 .ln-title::before{background:var(--rose)}
+  .l3 .ln-title::before{background:var(--gold)}
+  .ln-hint{font-size:12px;color:var(--sub)}
+  .line textarea{margin-top:8px}
+  .saved{font-size:12px;color:var(--sub);text-align:right;min-height:1.4em;margin:-4px 2px 10px}
+  .hitokoto{background:linear-gradient(160deg,#fff 0%,var(--rose-soft) 100%);border-radius:22px;padding:22px 20px;margin:20px 0;
+    text-align:center;border:1px solid #efd5d8;animation:rise .8s ease both}
+  .hitokoto .from{font-size:12px;color:var(--rose);letter-spacing:.2em;margin:0 0 10px}
+  .hitokoto .text{font-size:18px;line-height:1.9;margin:0;white-space:pre-wrap}
+  .piece-msg{margin-top:14px}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .banner{background:var(--lav);border-radius:16px;padding:12px 14px;font-size:13px;line-height:1.7;margin:14px 0}
+  .banner b{display:block;margin-bottom:4px}
+
+  /* パズル */
+  .puzzle{position:relative;width:100%;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--lav);
+    box-shadow:0 8px 24px rgba(43,42,76,.12)}
+  .puzzle img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr)}
+  .cell{transition:opacity 1.2s ease, transform 1.2s ease;opacity:0}
+  .cell.cover{opacity:1;background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,.55) 0 1.5px, transparent 2px),
+      radial-gradient(circle at 70% 65%, rgba(255,255,255,.4) 0 1px, transparent 1.5px),
+      linear-gradient(135deg,#3a3866,#2b2a4c);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+  .cell.just{animation:glow 1.6s ease}
+  @keyframes glow{0%{box-shadow:inset 0 0 0 3px var(--gold)}100%{box-shadow:inset 0 0 0 0 transparent}}
+  .count{text-align:center;font-size:15px;margin:14px 0 4px}
+  .count b{font-size:22px;color:var(--rose)}
+  .waiting{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;
+    font-size:14px;line-height:1.9;color:var(--ink)}
+  .collection{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .collection button{padding:0;border-radius:14px;overflow:hidden;aspect-ratio:1/1;background:var(--lav)}
+  .collection img{width:100%;height:100%;object-fit:cover;display:block}
+  .empty{font-size:13px;color:var(--sub);text-align:center;padding:16px 0}
+
+  /* きろく */
+  .log{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:10px 0}
+  .log .d{font-size:13px;color:var(--sub);margin-bottom:8px}
+  .log .r{font-size:14px;line-height:1.7;margin:4px 0;white-space:pre-wrap}
+  .log .r span{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px;color:#fff;vertical-align:1px}
+  .log .r.l1 span{background:var(--sub)} .log .r.l2 span{background:var(--rose)} .log .r.l3 span{background:var(--gold)}
+  .log .h{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:14px;color:var(--rose);line-height:1.7}
+
+  /* せってい */
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;font-size:15px}
+  .row select{width:auto;min-width:130px}
+  .switch{appearance:none;-webkit-appearance:none;width:52px;height:30px;border-radius:999px;background:#d8d2cc;position:relative;transition:.2s;flex:none}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch:checked{background:var(--rose)} .switch:checked::after{left:25px}
+  ol.steps{padding-left:20px;margin:8px 0;font-size:14px;line-height:1.9}
+
+  /* タブ */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,250,.96);backdrop-filter:blur(8px);
+    border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:10}
+  .tabbar button{flex:1;background:none;border-radius:12px;padding:8px 0;font-size:11px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px}
+  .tabbar button .i{font-size:20px;line-height:1}
+  .tabbar button.on{color:var(--ink);font-weight:bold}
+
+  /* モーダル・トースト */
+  .modal{position:fixed;inset:0;background:rgba(43,42,76,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:20}
+  .modal .box{background:var(--paper);border-radius:22px;padding:18px;max-width:440px;width:100%;text-align:center;animation:rise .5s ease both}
+  .modal img{width:100%;border-radius:14px;display:block}
+  .modal h3{margin:14px 0 6px;font-size:18px}
+  .modal p{margin:0 0 14px;color:var(--sub);font-size:14px;line-height:1.7}
+  .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:30;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ログイン -->
+<section id="login" hidden>
+  <div class="wrap">
+    <div class="hero">
+      <div class="moon">🌙</div>
+      <h1>書き換えノート</h1>
+      <p class="lead">毎日の3行で、<br>あなたの物語を少しずつ書き換えていく場所。</p>
+    </div>
+    <input id="keyInput" type="text" placeholder="あいことば" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <button id="loginBtn" class="primary">はじめる</button>
+    <p class="err" id="loginErr"></p>
+    <div class="banner" id="loginInstall" hidden>
+      <b>📱 ホーム画面に追加して使ってね</b>
+      Safariの下にある「共有」ボタン（□に↑）→「ホーム画面に追加」。<br>
+      ホーム画面のアイコンから開くと、通知も受け取れます。
+    </div>
+  </div>
+</section>
+
+<!-- メイン -->
+<main id="main" hidden>
+  <div class="wrap">
+
+    <!-- きょう -->
+    <section id="tab-today" class="tab">
+      <div class="top"><h1>今日の3行</h1><span class="date" id="todayLabel"></span></div>
+      <p class="note">1行だけでも、空けたままでも大丈夫。</p>
+
+      <div class="banner" id="installBanner" hidden>
+        <b>📱 ホーム画面に追加すると、通知が届くよ</b>
+        Safariの「共有」ボタン（□に↑）→「ホーム画面に追加」。くわしくは「せってい」へ。
+      </div>
+
+      <label class="line l1"><span class="ln-title">そのまま</span><span class="ln-hint">今日あったこと、感じたこと</span>
+        <textarea id="f-a" rows="2"></textarea></label>
+      <label class="line l2"><span class="ln-title">ちがう見方</span><span class="ln-hint">別の角度から見ると？</span>
+        <textarea id="f-b" rows="2"></textarea></label>
+      <label class="line l3"><span class="ln-title">これから</span><span class="ln-hint">次はどうしたい？</span>
+        <textarea id="f-c" rows="2"></textarea></label>
+      <p class="saved" id="savedState"></p>
+
+      <button id="deliverBtn" class="primary">とどける</button>
+      <p class="note" style="text-align:center">🎤 キーボードのマイクで、話して入力もできます</p>
+
+      <div class="hitokoto" id="hitokotoCard" hidden>
+        <p class="from">ゆわより</p>
+        <p class="text" id="hitokotoText"></p>
+        <div class="piece-msg" id="pieceMsg" hidden>
+          <p class="note" id="pieceMsgText"></p>
+          <button class="soft" data-go="puzzle">パズルを見る 🧩</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- パズル -->
+    <section id="tab-puzzle" class="tab" hidden>
+      <div class="top"><h1>パズル</h1><span class="date" id="picLabel"></span></div>
+      <p class="note">書いた日に、ピースがひとつ開きます。書けない日は、そのままで大丈夫。</p>
+      <div class="puzzle" id="puzzle">
+        <img id="puzzleImg" alt="">
+        <div class="grid" id="grid"></div>
+        <div class="waiting" id="waiting" hidden></div>
+      </div>
+      <p class="count" id="pieceCount"></p>
+      <h2>コレクション</h2>
+      <div class="collection" id="collection"></div>
+    </section>
+
+    <!-- きろく -->
+    <section id="tab-log" class="tab" hidden>
+      <div class="top"><h1>きろく</h1></div>
+      <div id="logList"></div>
+    </section>
+
+    <!-- せってい -->
+    <section id="tab-settings" class="tab" hidden>
+      <div class="top"><h1>せってい</h1></div>
+
+      <h2>リマインド通知</h2>
+      <div class="card">
+        <p class="note" id="pushStatus" style="margin-top:0"></p>
+        <button id="pushBtn" class="primary" hidden>通知を許可する</button>
+        <div id="installGuide" hidden>
+          <ol class="steps">
+            <li>このページを<b>Safari</b>で開く</li>
+            <li>下の「共有」ボタン（□に↑）をタップ</li>
+            <li>「ホーム画面に追加」→「追加」</li>
+            <li>ホーム画面の<b>書き換えノート</b>のアイコンから開く</li>
+            <li>この画面で「通知を許可する」をタップ</li>
+          </ol>
+        </div>
+        <div class="row"><span>毎日知らせる</span><input type="checkbox" class="switch" id="notifyOn"></div>
+        <div class="row"><span>時間</span><select id="notifyHour"></select></div>
+        <p class="note">その日もう書いていたら、通知は届きません。</p>
+      </div>
+
+      <h2>この端末</h2>
+      <div class="card">
+        <p style="margin-top:0"><span id="userName"></span>さんで使っています</p>
+        <button id="logoutBtn" class="ghost">この端末からログアウト</button>
+      </div>
+    </section>
+
+  </div>
+
+  <nav class="tabbar">
+    <button data-tab="today" class="on"><span class="i">✏️</span>きょう</button>
+    <button data-tab="puzzle"><span class="i">🧩</span>パズル</button>
+    <button data-tab="log"><span class="i">📖</span>きろく</button>
+    <button data-tab="settings"><span class="i">⚙️</span>せってい</button>
+  </nav>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="box">
+    <img id="modalImg" alt="">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <button class="primary" id="modalClose">とじる</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const CFG = window.KAKIKAE_CONFIG || {};
+  const $ = s => document.querySelector(s);
+  const LS_KEY = 'kn_key', LS_DRAFT = 'kn_draft';
+  const PIECES = 25;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+  let KEY = localStorage.getItem(LS_KEY) || '';
+  let ST = null;          // 利用者の状態
+  let TODAY = '';
+  let delivered = false;
+  let saveTimer = null;
+  let osReady = false;
+
+  /* ---------- 通信 ---------- */
+  async function api(action, data){
+    const res = await fetch(CFG.GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ action, key: KEY }, data || {}))
+    });
+    const j = await res.json();
+    if (!j.ok) { const e = new Error(j.error || 'error'); e.code = j.error; throw e; }
+    if (j.state) { ST = j.state; }
+    if (j.today) { TODAY = j.today; }
+    return j;
+  }
+
+  function handleErr(e){
+    if (e && e.code === 'auth') { logout('あいことばが使えなくなりました。ゆわに確認してね。'); return; }
+    toast('うまくつながりませんでした。電波のよいところで、もう一度ためしてね。');
+    console.log(e);
+  }
+
+  /* ---------- 表示の道具 ---------- */
+  function toast(msg){
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+  function esc(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function picSrc(n){ return 'images/puzzle_' + String(n).padStart(2, '0') + '.png'; }
+  function dayLabel(key){
+    if (!key) return '';
+    const p = key.split('-').map(Number);
+    const w = '日月火水木金土'[new Date(Date.UTC(p[0], p[1]-1, p[2])).getUTCDay()];
+    return p[1] + '月' + p[2] + '日（' + w + '）';
+  }
+  function showModal(img, title, text){
+    $('#modalImg').src = img || ''; $('#modalImg').hidden = !img;
+    $('#modalTitle').textContent = title || ''; $('#modalText').textContent = text || '';
+    $('#modal').hidden = false;
+  }
+  $('#modalClose').onclick = () => { $('#modal').hidden = true; };
+
+  /* ---------- タブ ---------- */
+  function go(tab){
+    document.querySelectorAll('.tab').forEach(s => s.hidden = (s.id !== 'tab-' + tab));
+    document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    window.scrollTo(0, 0);
+    if (tab === 'puzzle') renderPuzzle();
+    if (tab === 'log') loadHistory();
+    if (tab === 'settings') renderSettings();
+  }
+  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go(b.dataset.tab));
+  document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
+
+  /* ---------- ログイン ---------- */
+  function normKey(k){ return String(k || '').normalize('NFKC').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+
+  $('#loginBtn').onclick = async () => {
+    const k = normKey($('#keyInput').value);
+    if (!k) { $('#loginErr').textContent = 'あいことばを入れてね'; return; }
+    $('#loginBtn').disabled = true; $('#loginErr').textContent = '';
+    KEY = k;
+    try {
+      await api('login');
+      localStorage.setItem(LS_KEY, KEY);
+      enter();
+    } catch (e) {
+      KEY = '';
+      $('#loginErr').textContent = (e.code === 'auth') ? 'あいことばが違うみたい。もう一度見てみてね。' : 'うまくつながりませんでした。もう一度ためしてね。';
+    }
+    $('#loginBtn').disabled = false;
+  };
+  $('#keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#loginBtn').click(); });
+
+  function logout(msg){
+    localStorage.removeItem(LS_KEY);
+    KEY = ''; ST = null;
+    $('#main').hidden = true; $('#login').hidden = false;
+    $('#loginInstall').hidden = !(isIOS && !isStandalone);
+    $('#loginErr').textContent = msg || '';
+    if (osReady && window.OneSignal) { try { window.OneSignal.logout(); } catch (e) {} }
+  }
+  $('#logoutBtn').onclick = () => logout();
+
+  function enter(){
+    $('#login').hidden = true; $('#main').hidden = false;
+    $('#installBanner').hidden = !(isIOS && !isStandalone);
+    go('today');
+    loadToday();
+    linkPush();
+  }
+
+  /* ---------- きょう ---------- */
+  const fields = ['a', 'b', 'c'];
+  function getFields(){ const o = {}; fields.forEach(f => o[f] = $('#f-' + f).value); return o; }
+  function setFields(o){ fields.forEach(f => { $('#f-' + f).value = (o && o[f]) || ''; autosize($('#f-' + f)); }); }
+  function autosize(t){ t.style.height = 'auto'; t.style.height = Math.max(64, t.scrollHeight + 2) + 'px'; }
+
+  function readDraft(){ try { return JSON.parse(localStorage.getItem(LS_DRAFT) || 'null'); } catch (e) { return null; } }
+  function writeDraft(){ const d = getFields(); d.day = TODAY; d.t = Date.now(); localStorage.setItem(LS_DRAFT, JSON.stringify(d)); }
+
+  async function loadToday(){
+    $('#savedState').textContent = '読みこみ中…';
+    try {
+      const j = await api('today');
+      $('#todayLabel').textContent = dayLabel(TODAY);
+      const e = j.entry;
+      const d = readDraft();
+      const serverEmpty = !e || !(e.a || e.b || e.c);
+      if (serverEmpty && d && d.day === TODAY && (d.a || d.b || d.c)) {
+        setFields(d); scheduleSave(0);
+      } else {
+        setFields(e);
+      }
+      delivered = !!(e && e.delivered);
+      if (delivered) showHitokoto(e.hitokoto, null); else $('#hitokotoCard').hidden = true;
+      updateDeliverBtn();
+      $('#savedState').textContent = '';
+    } catch (err) { $('#savedState').textContent = ''; handleErr(err); }
+  }
+
+  function updateDeliverBtn(){ $('#deliverBtn').textContent = delivered ? '書き直しを保存する' : 'とどける'; }
+
+  function scheduleSave(ms){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try {
+        await api('save', getFields());
+        $('#savedState').textContent = '✓ 保存しました';
+      } catch (e) {
+        if (e && e.code === 'auth') return handleErr(e);
+        $('#savedState').textContent = 'この端末に保存中（つながったら送ります）';
+      }
+    }, ms === undefined ? 1500 : ms);
+  }
+
+  fields.forEach(f => {
+    const t = $('#f-' + f);
+    t.addEventListener('input', () => { autosize(t); writeDraft(); $('#savedState').textContent = '…'; scheduleSave(); });
+  });
+
+  $('#deliverBtn').onclick = async () => {
+    const v = getFields();
+    if (!(v.a.trim() || v.b.trim() || v.c.trim())) { toast('1行だけでも書いてみてね🌸'); return; }
+    clearTimeout(saveTimer);
+    const btn = $('#deliverBtn'); btn.disabled = true; btn.textContent = 'とどけています…';
+    try {
+      const j = await api('deliver', v);
+      $('#savedState').textContent = '✓ 保存しました';
+      if (j.already) {
+        toast('書き直しを保存しました');
+      } else {
+        delivered = true;
+        showHitokoto(j.hitokoto, j);
+        if (j.completed) {
+          setTimeout(() => showModal(picSrc(j.completed), '絵が完成しました 🌸', '25日分のあなたが、この1枚になりました。コレクションにしまっておくね。'), 1400);
+        }
+      }
+    } catch (e) { handleErr(e); }
+    btn.disabled = false; updateDeliverBtn();
+  };
+
+  function showHitokoto(text, res){
+    $('#hitokotoText').textContent = text || '';
+    const card = $('#hitokotoCard');
+    card.hidden = false; card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
+    const pm = $('#pieceMsg');
+    if (res && (res.piece !== null && res.piece !== undefined || res.banked)) {
+      pm.hidden = false;
+      $('#pieceMsgText').textContent = res.banked
+        ? 'ピースをひとつ、大切にとっておくね。次の絵ができたら開きます。'
+        : (res.completed ? '最後のピースが開いて、絵が完成したよ！' : 'パズルのピースがひとつ開いたよ。');
+      renderPuzzle._just = (res.completed ? null : res.piece);
+    } else {
+      pm.hidden = true;
+    }
+    if (res) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+
+  /* ---------- パズル ---------- */
+  function renderPuzzle(){
+    if (!ST) return;
+    const grid = $('#grid'), img = $('#puzzleImg'), wait = $('#waiting');
+    grid.innerHTML = '';
+    const just = renderPuzzle._just; renderPuzzle._just = null;
+    if (ST.pic > ST.picCount) {
+      img.hidden = true; wait.hidden = false;
+      wait.innerHTML = '次の絵を、いま準備しています🌙<br>書いた日のピースは、ちゃんととっておくね。' +
+        (ST.bank ? '<br><br>とってあるピース：' + ST.bank + 'こ' : '');
+      $('#picLabel').textContent = '';
+      $('#pieceCount').textContent = '';
+    } else {
+      img.hidden = false; wait.hidden = true;
+      img.src = picSrc(ST.pic);
+      $('#picLabel').textContent = ST.pic + '枚目';
+      for (let i = 0; i < PIECES; i++) {
+        const c = document.createElement('div');
+        c.className = 'cell';
+        const open = ST.opened.indexOf(i) >= 0;
+        if (!open || i === just) c.classList.add('cover');
+        grid.appendChild(c);
+        if (i === just) setTimeout(() => { c.classList.remove('cover'); c.classList.add('just'); }, 500);
+      }
+      $('#pieceCount').innerHTML = '<b>' + ST.opened.length + '</b> / ' + PIECES + ' ピース';
+    }
+    const col = $('#collection');
+    col.innerHTML = '';
+    if (!ST.done.length) { col.innerHTML = '<p class="empty" style="grid-column:1/-1">完成した絵が、ここに並んでいきます。</p>'; }
+    ST.done.slice().reverse().forEach(n => {
+      const b = document.createElement('button');
+      b.innerHTML = '<img alt="" src="' + picSrc(n) + '">';
+      b.onclick = () => showModal(picSrc(n), n + '枚目の絵', '');
+      col.appendChild(b);
+    });
+  }
+
+  /* ---------- きろく ---------- */
+  async function loadHistory(){
+    const box = $('#logList');
+    box.innerHTML = '<p class="empty">読みこみ中…</p>';
+    try {
+      const j = await api('history');
+      if (!j.list.length) { box.innerHTML = '<p class="empty">書いた日の記録が、ここに残っていきます。</p>'; return; }
+      box.innerHTML = j.list.map(e =>
+        '<div class="log"><div class="d">' + esc(dayLabel(e.day)) + '</div>' +
+        (e.a ? '<p class="r l1"><span>そのまま</span>' + esc(e.a) + '</p>' : '') +
+        (e.b ? '<p class="r l2"><span>ちがう見方</span>' + esc(e.b) + '</p>' : '') +
+        (e.c ? '<p class="r l3"><span>これから</span>' + esc(e.c) + '</p>' : '') +
+        (e.hitokoto ? '<div class="h">🌸 ' + esc(e.hitokoto) + '</div>' : '') +
+        '</div>').join('');
+    } catch (e) { box.innerHTML = ''; handleErr(e); }
+  }
+
+  /* ---------- せってい ---------- */
+  (function buildHours(){
+    const s = $('#notifyHour');
+    for (let h = 0; h < 24; h++) {
+      const o = document.createElement('option');
+      o.value = h; o.textContent = h + ':00';
+      s.appendChild(o);
+    }
+  })();
+
+  function renderSettings(){
+    if (!ST) return;
+    $('#userName').textContent = ST.name;
+    $('#notifyOn').checked = !!ST.notifyOn;
+    $('#notifyHour').value = String(ST.notifyHour);
+    updatePushUI();
+  }
+
+  async function saveNotify(){
+    try { await api('notify', { on: $('#notifyOn').checked, hour: Number($('#notifyHour').value) }); toast('保存しました'); }
+    catch (e) { handleErr(e); }
+  }
+  $('#notifyOn').onchange = saveNotify;
+  $('#notifyHour').onchange = saveNotify;
+
+  /* ---------- 通知（OneSignal） ---------- */
+  function initPush(){
+    if (!CFG.ONESIGNAL_APP_ID) return;
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    const base = location.pathname.replace(/[^/]*$/, '');
+    window.OneSignalDeferred.push(async function(OneSignal){
+      try {
+        await OneSignal.init({
+          appId: CFG.ONESIGNAL_APP_ID,
+          serviceWorkerPath: base.slice(1) + 'OneSignalSDKWorker.js',
+          serviceWorkerParam: { scope: base },
+          notifyButton: { enable: false }
+        });
+        osReady = true;
+        OneSignal.Notifications.addEventListener('permissionChange', () => { linkPush(); updatePushUI(); });
+        linkPush();
+      } catch (e) { console.log('push init', e); }
+      updatePushUI();
+    });
+  }
+
+  function linkPush(){
+    if (!osReady || !ST || !window.OneSignal) return;
+    try { window.OneSignal.login(ST.userId); } catch (e) { console.log(e); }
+  }
+
+  function updatePushUI(){
+    const s = $('#pushStatus'), b = $('#pushBtn');
+    $('#installGuide').hidden = !(isIOS && !isStandalone);
+    b.hidden = true;
+    if (isIOS && !isStandalone) { s.textContent = 'iPhoneでは、ホーム画面に追加すると通知を受け取れます。'; return; }
+    if (!CFG.ONESIGNAL_APP_ID) { s.textContent = '通知は、いま準備中です。'; return; }
+    if (!('Notification' in window)) { s.textContent = 'この端末では通知が使えないみたい。'; return; }
+    const p = Notification.permission;
+    if (p === 'granted') s.textContent = '✅ 通知はオンになっています';
+    else if (p === 'denied') s.textContent = '通知がブロックされています。端末の「設定」→「通知」から、書き換えノートを許可してね。';
+    else { s.textContent = '通知を受け取るには、許可をお願いします。'; b.hidden = false; }
+  }
+
+  $('#pushBtn').onclick = async () => {
+    try {
+      if (osReady && window.OneSignal) {
+        await window.OneSignal.Notifications.requestPermission();
+      } else if ('Notification' in window) {
+        await Notification.requestPermission();
+      }
+    } catch (e) { console.log(e); }
+    linkPush(); updatePushUI();
+    if ('Notification' in window && Notification.permission === 'granted') toast('通知がオンになりました🌸');
+  };
+
+  /* ---------- はじまり ---------- */
+  initPush();
+  if (!CFG.GAS_URL || /ここに/.test(CFG.GAS_URL)) {
+    $('#login').hidden = false;
+    $('#loginErr').textContent = '（準備中：config.js にGASのURLを入れてね）';
+  } else if (KEY) {
+    api('login').then(enter).catch(e => {
+      if (e && e.code === 'auth') logout('');
+      else { enter(); }
+    });
+  } else {
+    logout('');
+  }
+})();
+</script>
+</body>
+</html>
