@@ -296,6 +296,8 @@
         </div>
         <p class="note center">1行だけでも、空けたままでも大丈夫。</p>
 
+        <div class="banner" id="expiredBanner" hidden></div>
+        <div class="banner" id="renewBanner" hidden></div>
         <div class="banner" id="installBanner" hidden>
           <b>📱 ホーム画面に追加すると、通知が届くよ</b>
           Safariの「共有」ボタン（□に↑）→「ホーム画面に追加」。くわしくは「せってい」へ。
@@ -377,7 +379,8 @@
         </div>
         <div class="box">
           <h2>この本の持ち主</h2>
-          <p style="margin:4px 0 12px"><span id="userName"></span>さん</p>
+          <p style="margin:4px 0 4px"><span id="userName"></span>さん</p>
+          <p class="note" id="expiryLine" style="margin:0 0 12px"></p>
           <button id="logoutBtn" class="soft-btn">この端末からログアウト</button>
         </div>
       </section>
@@ -425,13 +428,14 @@
       body: JSON.stringify(Object.assign({ action, key: KEY }, data || {}))
     });
     const j = await res.json();
-    if (!j.ok) { const e = new Error(j.error || 'error'); e.code = j.error; throw e; }
     if (j.state) ST = j.state;
     if (j.today) TODAY = j.today;
+    if (!j.ok) { const e = new Error(j.error || 'error'); e.code = j.error; throw e; }
     return j;
   }
   function handleErr(e){
     if (e && e.code === 'auth') { logout('あいことばが使えなくなりました。ゆわに確認してね。'); return; }
+    if (e && e.code === 'expired') { applyExpiry(); toast('この本は期限をむかえています。更新はゆわへ ✦'); return; }
     toast('うまくつながりませんでした。電波のよいところで、もう一度ためしてね。');
     console.log(e);
   }
@@ -575,6 +579,23 @@
   }
   $('#logoutBtn').onclick = () => logout();
 
+  /* ---------- 有効期限 ---------- */
+  function jpDate(k){ if (!k) return ''; const p = k.split('-').map(Number); return p[0] + '年' + p[1] + '月' + p[2] + '日'; }
+  function applyExpiry(){
+    if (!ST) return;
+    const ex = !!ST.expired;
+    fields.forEach(f => { $('#f-' + f).disabled = ex; });
+    $('#deliverBtn').hidden = ex;
+    const eb = $('#expiredBanner'), rb = $('#renewBanner');
+    eb.hidden = !ex;
+    if (ex) eb.innerHTML = '<b>☾ この本は ' + jpDate(ST.expires) + ' で期限をむかえました</b>これまでのページとコレクションは、いつでも読めます。続けて書くときは、ゆわに「更新したい」と伝えてね。';
+    const soon = !ex && ST.daysLeft !== null && ST.daysLeft !== undefined && ST.daysLeft <= 30;
+    rb.hidden = !soon;
+    if (soon) rb.innerHTML = '<b>✦ そろそろ更新の時期です</b>この本は ' + jpDate(ST.expires) + ' まで書けます（あと' + Math.max(0, ST.daysLeft) + '日）。続けるときは、ゆわに伝えてね。';
+    $('#notifyOn').disabled = ex; $('#notifyHour').disabled = ex;
+    $('#expiryLine').textContent = ST.expires ? (ex ? jpDate(ST.expires) + ' で期限をむかえました' : jpDate(ST.expires) + ' まで書けます') : '';
+  }
+
   /* ---------- きょう ---------- */
   const fields = ['a', 'b', 'c'];
   function getFields(){ const o = {}; fields.forEach(f => o[f] = $('#f-' + f).value); return o; }
@@ -595,6 +616,7 @@
       delivered = !!(e && e.delivered);
       if (delivered) showHitokoto(e.hitokoto, null, false); else $('#hitokotoCard').hidden = true;
       updateDeliverBtn();
+      applyExpiry();
       $('#savedState').textContent = '';
     } catch (err) { $('#savedState').textContent = ''; handleErr(err); }
   }
@@ -612,7 +634,7 @@
   }
   fields.forEach(f => {
     const t = $('#f-' + f);
-    t.addEventListener('input', () => { autosize(t); writeDraft(); $('#savedState').textContent = '…'; scheduleSave(); });
+    t.addEventListener('input', () => { autosize(t); writeDraft(); if (ST && ST.expired) return; $('#savedState').textContent = '…'; scheduleSave(); });
   });
 
   $('#deliverBtn').onclick = async () => {
@@ -628,7 +650,7 @@
         delivered = true;
         sparkle(btn);
         showHitokoto(j.hitokoto, j, true);
-        if (j.completed) setTimeout(() => showModal(picSrc(j.completed), '絵が完成しました ✦', '25日分のあなたが、この1枚になりました。コレクションにしまっておくね。'), 2600);
+        if (j.completed) setTimeout(() => showModal(picSrc(j.completed), '絵が完成しました ✦', (j.completed === (ST && ST.lastPic) ? '1年分のあなたが、ここにそろいました。本当に、おめでとう。' : '書いた日のあなたが、この1枚になりました。コレクションにしまっておくね。')), 2600);
       }
     } catch (e) { handleErr(e); }
     btn.disabled = false; updateDeliverBtn();
@@ -660,7 +682,11 @@
     const grid = $('#grid'), img = $('#puzzleImg'), wt = $('#waiting');
     grid.innerHTML = '';
     const just = renderPuzzle._just; renderPuzzle._just = null;
-    if (ST.pic > ST.picCount) {
+    if (ST.lastPic && ST.pic > ST.lastPic) {
+      img.hidden = true; wt.hidden = false;
+      wt.innerHTML = '✦ 1年分の絵が、すべてそろいました ✦<br>下のコレクションで、いつでも見返せます。';
+      $('#picLabel').textContent = ''; $('#pieceCount').textContent = '';
+    } else if (ST.pic > ST.picCount) {
       img.hidden = true; wt.hidden = false;
       wt.innerHTML = '次の絵を、いま描いています ☾<br>書いた日のピースは、ちゃんととっておくね。' + (ST.bank ? '<br><br>とってあるピース：' + ST.bank + 'こ' : '');
       $('#picLabel').textContent = ''; $('#pieceCount').textContent = '';
@@ -668,14 +694,18 @@
       img.hidden = false; wt.hidden = true;
       img.src = picSrc(ST.pic);
       $('#picLabel').textContent = ST.pic + '枚目の絵';
-      for (let i = 0; i < PIECES; i++) {
+      const total = ST.pieces || PIECES;
+      const cols = 5, rows = Math.ceil(total / cols);
+      grid.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+      grid.style.gridTemplateRows = 'repeat(' + rows + ',1fr)';
+      for (let i = 0; i < total; i++) {
         const c = document.createElement('div');
         c.className = 'cell';
         if (ST.opened.indexOf(i) < 0 || i === just) c.classList.add('cover');
         grid.appendChild(c);
         if (i === just) setTimeout(() => { c.classList.remove('cover'); c.classList.add('just'); }, 600);
       }
-      $('#pieceCount').innerHTML = '<b>' + ST.opened.length + '</b> / ' + PIECES + ' ピース';
+      $('#pieceCount').innerHTML = '<b>' + ST.opened.length + '</b> / ' + total + ' ピース' + (ST.pic === ST.lastPic ? '<br><small style="color:var(--ink-s)">さいごの1枚</small>' : '');
     }
     const col = $('#collection');
     col.innerHTML = '';
@@ -746,6 +776,7 @@
     $('#userName').textContent = ST.name;
     $('#notifyOn').checked = !!ST.notifyOn;
     $('#notifyHour').value = String(ST.notifyHour);
+    applyExpiry();
     updatePushUI();
   }
   async function saveNotify(){
