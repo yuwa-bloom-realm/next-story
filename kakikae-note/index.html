@@ -364,6 +364,8 @@
           <h2>リマインド通知</h2>
           <p class="note" id="pushStatus" style="margin-top:0"></p>
           <button id="pushBtn" class="seal-btn" hidden>通知を許可する</button>
+          <button id="pushFix" class="soft-btn" style="margin-top:10px">通知をつなぎ直す</button>
+          <p class="note" id="pushDiag" style="font-size:11px;word-break:break-all;opacity:.75"></p>
           <div id="installGuide" hidden>
             <ol class="steps">
               <li>このページを<b>Safari</b>で開く</li>
@@ -835,6 +837,34 @@
     linkPush(); updatePushUI();
     if ('Notification' in window && Notification.permission === 'granted') toast('通知がオンになりました ✦');
   };
+
+  async function pushDiag(){
+    const out = [];
+    try { out.push('許可:' + (('Notification' in window) ? Notification.permission : 'なし')); } catch (e) {}
+    out.push('SDK:' + (osReady ? 'OK' : 'まだ'));
+    try {
+      const ps = window.OneSignal && window.OneSignal.User && window.OneSignal.User.PushSubscription;
+      if (ps) out.push('購読:' + ps.optedIn, 'ID:' + (ps.id ? String(ps.id).slice(0, 8) : 'なし'), 'トークン:' + (ps.token ? 'あり' : 'なし'));
+    } catch (e) {}
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      out.push('SW:' + (regs.length ? regs.map(r => r.scope.replace(location.origin, '')).join(',') : 'なし'));
+    } catch (e) { out.push('SW:エラー'); }
+    out.push('ユーザー:' + (ST && ST.userId ? ST.userId : 'なし'));
+    $('#pushDiag').textContent = out.join(' / ');
+  }
+  $('#pushFix').onclick = async () => {
+    $('#pushDiag').textContent = 'つなぎ直しています…';
+    try {
+      if (osReady && window.OneSignal) {
+        await window.OneSignal.Notifications.requestPermission();
+        try { await window.OneSignal.User.PushSubscription.optIn(); } catch (e) { console.log(e); }
+        linkPush();
+      }
+    } catch (e) { console.log(e); }
+    setTimeout(() => { pushDiag(); updatePushUI(); }, 2500);
+  };
+  setInterval(() => { if (!$('#tab-settings').hidden) pushDiag(); }, 3000);
 
   /* ---------- はじまり ---------- */
   initPush();
