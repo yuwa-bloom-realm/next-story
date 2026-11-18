@@ -809,6 +809,11 @@
   function linkPush(){
     if (!osReady || !ST || !window.OneSignal) return;
     try { window.OneSignal.login(ST.userId); } catch (e) { console.log(e); }
+    // 端末で通知が許可されているのに、OneSignal側で「購読停止」になっていたら、つなぎ直す
+    try {
+      const ps = window.OneSignal.User && window.OneSignal.User.PushSubscription;
+      if ('Notification' in window && Notification.permission === 'granted' && ps && !ps.optedIn) ps.optIn();
+    } catch (e) { console.log(e); }
   }
   function updatePushUI(){
     const s = $('#pushStatus'), b = $('#pushBtn');
