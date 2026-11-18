@@ -799,7 +799,8 @@
           appId: CFG.ONESIGNAL_APP_ID,
           serviceWorkerPath: base.slice(1) + 'OneSignalSDKWorker.js',
           serviceWorkerParam: { scope: base },
-          notifyButton: { enable: false }
+          notifyButton: { enable: false },
+          welcomeNotification: { disable: true }
         });
         osReady = true;
         OneSignal.Notifications.addEventListener('permissionChange', () => { linkPush(); updatePushUI(); });
@@ -864,7 +865,6 @@
     } catch (e) { console.log(e); }
     setTimeout(() => { pushDiag(); updatePushUI(); }, 2500);
   };
-  setInterval(() => { if (!$('#tab-settings').hidden) pushDiag(); }, 3000);
 
   /* ---------- はじまり ---------- */
   initPush();
