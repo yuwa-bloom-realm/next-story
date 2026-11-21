@@ -180,7 +180,8 @@
       radial-gradient(circle at 72% 68%, rgba(255,255,255,.35) 0 1px, transparent 1.5px),
       linear-gradient(135deg,#2a3170,#161a40);
     box-shadow:inset 0 0 0 .5px rgba(201,164,92,.35)}
-  .cell.just{animation:glowCell 1.8s ease}
+  .cell.just{background:linear-gradient(135deg,#2a3170,#161a40);animation:openCell 2.2s ease .4s both}
+  @keyframes openCell{0%{opacity:1;box-shadow:inset 0 0 0 3px var(--gold-l),0 0 18px var(--gold-l)}40%{opacity:1;box-shadow:inset 0 0 0 3px var(--gold-l),0 0 18px var(--gold-l)}100%{opacity:0;box-shadow:none}}
   @keyframes glowCell{0%{box-shadow:inset 0 0 0 3px var(--gold-l), 0 0 18px var(--gold-l)}100%{box-shadow:none}}
   .count{text-align:center;font-size:15px;margin:16px 0 4px;letter-spacing:.1em}
   .count b{font-size:24px;color:var(--rose)}
@@ -703,9 +704,9 @@
       for (let i = 0; i < total; i++) {
         const c = document.createElement('div');
         c.className = 'cell';
-        if (ST.opened.indexOf(i) < 0 || i === just) c.classList.add('cover');
+        if (ST.opened.indexOf(i) < 0) c.classList.add('cover');
+        else if (i === just) c.classList.add('just');   // 開いたばかりのピースは、ふたがふわっと消える
         grid.appendChild(c);
-        if (i === just) setTimeout(() => { c.classList.remove('cover'); c.classList.add('just'); }, 600);
       }
       $('#pieceCount').innerHTML = '<b>' + ST.opened.length + '</b> / ' + total + ' ピース' + (ST.pic === ST.lastPic ? '<br><small style="color:var(--ink-s)">さいごの1枚</small>' : '');
     }
