@@ -105,9 +105,12 @@
     border-radius:12px;padding:10px 12px;margin-top:16px;text-align:left}
 
   /* ===== 本の中 ===== */
-  #main{position:relative;z-index:1;padding:calc(14px + env(safe-area-inset-top)) 12px calc(86px + env(safe-area-inset-bottom));
+  /* 本の中は、この箱の中だけでスクロールする（下のメニューが動かないように） */
+  #main{position:fixed;inset:0;z-index:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    padding:calc(14px + env(safe-area-inset-top)) 12px calc(96px + env(safe-area-inset-bottom));
     animation:appear .8s ease both}
-  @keyframes appear{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+  #main[hidden]{display:none}
+  @keyframes appear{from{opacity:0}to{opacity:1}}
   .desk{max-width:540px;margin:0 auto;perspective:1600px}
   .page{position:relative;min-height:calc(100vh - 120px);border-radius:4px 14px 14px 4px;padding:26px 22px 30px 30px;
     background:var(--noise),
@@ -534,7 +537,7 @@
     currentTab = tab;
     document.querySelectorAll('.tab').forEach(s => s.hidden = (s.id !== 'tab-' + tab));
     document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
-    window.scrollTo(0, 0);
+    $('#main').scrollTo(0, 0);
     if (tab === 'puzzle') renderPuzzle();
     if (tab === 'log') loadHistory();
     if (tab === 'settings') renderSettings();
@@ -755,7 +758,7 @@
     if (n < 0 || n >= LOG.length) return;
     const p = $('#page');
     if (!reduced) { p.classList.add('turn-out'); await wait(240); p.classList.remove('turn-out'); }
-    logIdx = n; window.scrollTo(0, 0); renderLog(!reduced);
+    logIdx = n; $('#main').scrollTo(0, 0); renderLog(!reduced);
   }
   (function swipe(){
     let x0 = null, y0 = null;
