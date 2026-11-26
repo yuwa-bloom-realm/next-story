@@ -14,6 +14,9 @@
 <link rel="icon" href="icons/icon-192.png">
 <script src="config.js"></script>
 <script src="care.js"></script>
+<script src="letters.js"></script>
+<script src="doors.js"></script>
+<script src="cards.js"></script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <style>
   :root{
@@ -238,7 +241,26 @@
   .modal .mbox{width:100%;max-width:440px;text-align:center;border-radius:6px;padding:18px;
     background:var(--noise),var(--paper);box-shadow:0 20px 50px rgba(0,0,0,.5);animation:rise .5s ease both}
   .modal img{width:100%;display:block;border:8px solid #c9a45c;border-image:linear-gradient(145deg,#e3c587,#a9853f) 1}
-  .modal h3{margin:14px 0 6px;font-size:18px;letter-spacing:.12em}
+  .modal .mbox{max-height:calc(100vh - 48px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .modal .letter{margin:6px 0 14px;padding:16px 14px;text-align:left;border-radius:4px;background:#fbf5e8;
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.5)}
+  .modal .lt-body{margin:0;color:var(--ink);font-size:15px;line-height:2;white-space:pre-wrap}
+  .modal .lt-from{margin:10px 0 0;text-align:right;color:var(--ink-s);font-size:13px}
+  .modal .mnote{font-size:12px;margin:-6px 0 12px}
+  .sky{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:16/10;
+    background:radial-gradient(ellipse at 50% 120%,#2e3576 0%,#141733 60%,#0b0d22 100%);box-shadow:inset 0 0 0 1px rgba(201,164,92,.4)}
+  .sky canvas{position:absolute;inset:0;width:100%;height:100%}
+  .doors{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .door{aspect-ratio:3/4;border-radius:40px 40px 4px 4px;font-size:12px;line-height:1.5;padding:8px 4px;color:var(--gold-l);
+    background:linear-gradient(160deg,#2b336b,#141733);box-shadow:inset 0 0 0 1px rgba(201,164,92,.55);display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .door .k{font-size:20px;margin-bottom:4px}
+  .door.locked{opacity:.55}
+  .door.open{background:linear-gradient(160deg,#f3e3bc,#d7b46c);color:var(--ink)}
+  .letters{display:flex;flex-direction:column;gap:8px}
+  .letters button{text-align:left;padding:12px 14px;border-radius:8px;background:rgba(255,250,240,.6);font-size:14px;color:var(--ink);
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.45)}
+  .letters .empty{text-align:center}
+  .modal h3{white-space:pre-line;margin:14px 0 6px;font-size:18px;letter-spacing:.12em}
   .modal p{margin:0 0 14px;color:var(--ink-s);font-size:14px;line-height:1.8}
   .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;
     background:rgba(20,23,51,.95);color:var(--gold-l);padding:10px 18px;border-radius:999px;font-size:14px;letter-spacing:.05em;
@@ -359,6 +381,16 @@
         <p class="count" id="pieceCount"></p>
         <div class="divider">コレクション</div>
         <div class="collection" id="collection"></div>
+
+        <div class="divider">あなたの星空</div>
+        <div class="sky" id="sky"><canvas id="skyCanvas"></canvas></div>
+        <p class="note center" id="skyText"></p>
+
+        <div class="divider">秘密の扉</div>
+        <div class="doors" id="doors"></div>
+
+        <div class="divider">てがみ箱</div>
+        <div class="letters" id="letterBox"></div>
       </section>
 
       <!-- きろく -->
@@ -419,6 +451,8 @@
     <img id="modalImg" alt="">
     <h3 id="modalTitle"></h3>
     <p id="modalText"></p>
+    <div class="letter" id="modalLetter" hidden><p class="lt-body" id="modalLetterText"></p><p class="lt-from" id="modalFrom"></p></div>
+    <p class="mnote" id="modalNote" hidden></p>
     <button class="seal-btn" id="modalClose">とじる</button>
   </div>
 </div>
@@ -471,12 +505,26 @@
     const w = '日月火水木金土'[new Date(Date.UTC(p[0], p[1]-1, p[2])).getUTCDay()];
     return p[0] + '年' + p[1] + '月' + p[2] + '日（' + w + '）';
   }
-  function showModal(img, title, text){
+  // おしらせの画面（いくつか重なったら、とじるたびに次が出る）
+  const modalQ = [];
+  function showModal(img, title, text, opt){
+    opt = opt || {};
+    if (!$('#modal').hidden) { modalQ.push([img, title, text, opt]); return; }
     $('#modalImg').src = img || ''; $('#modalImg').hidden = !img;
     $('#modalTitle').textContent = title || ''; $('#modalText').textContent = text || '';
+    $('#modalText').hidden = !text;
+    $('#modalLetter').hidden = !opt.letter;
+    $('#modalLetterText').textContent = opt.letter || '';
+    $('#modalFrom').textContent = opt.from ? '— ' + opt.from : '';
+    $('#modalNote').hidden = !opt.note; $('#modalNote').textContent = opt.note || '';
     $('#modal').hidden = false;
+    $('#modal .mbox').scrollTop = 0;
   }
-  $('#modalClose').onclick = () => { $('#modal').hidden = true; };
+  $('#modalClose').onclick = () => {
+    $('#modal').hidden = true;
+    const n = modalQ.shift();
+    if (n) setTimeout(() => showModal.apply(null, n), 250);
+  };
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
   function sparkle(el){
@@ -540,6 +588,7 @@
     $('#main').hidden = false;
     $('#installBanner').hidden = !(isIOS && !isStandalone);
     showTab('today');
+    setTimeout(checkCard, fromBook ? 900 : 300);
     loadToday();
     linkPush();
   }
@@ -550,7 +599,7 @@
     document.querySelectorAll('.tab').forEach(s => s.hidden = (s.id !== 'tab-' + tab));
     document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     $('#main').scrollTo(0, 0);
-    if (tab === 'puzzle') renderPuzzle();
+    if (tab === 'puzzle') { renderPuzzle(); renderExtras(); }
     if (tab === 'log') loadHistory();
     if (tab === 'settings') renderSettings();
   }
@@ -668,7 +717,12 @@
         delivered = true;
         sparkle(btn);
         showHitokoto(j.hitokoto, j, true);
-        if (j.completed) setTimeout(() => showModal(picSrc(j.completed), '絵が完成しました ✦', (j.completed === (ST && ST.lastPic) ? '1年分のあなたが、ここにそろいました。本当に、おめでとう。' : '書いた日のあなたが、この1枚になりました。コレクションにしまっておくね。')), 2600);
+        const after = totalDays(), before = after - 1;
+        setTimeout(() => {
+          if (j.completed) showComplete(j.completed);
+          DOORS().filter(d => d.day > before && d.day <= after).forEach(d => showDoor(d, true));
+          renderExtras();
+        }, 2600);
       }
     } catch (e) { handleErr(e); }
     btn.disabled = false; updateDeliverBtn();
@@ -882,6 +936,95 @@
     setTimeout(() => { pushDiag(); updatePushUI(); }, 2500);
   };
 
+  /* ---------- お楽しみ（手紙・星空・扉・カード） ---------- */
+  const LETTERS = () => window.KAKIKAE_LETTERS || {};
+  const DOORS = () => (window.KAKIKAE_DOORS || []).slice().sort((a, b) => a.day - b.day);
+  const CARDS = () => window.KAKIKAE_CARDS || {};
+
+  // 書いた日の合計（ピースの数から数える。休んでも減らない）
+  function totalDays(){
+    if (!ST) return 0;
+    const done = (ST.done || []).reduce((n, p) => n + (p === ST.lastPic ? (ST.pieces || 20) : 25), 0);
+    return done + (ST.opened || []).length + (ST.bank || 0);
+  }
+  // 日本時間・朝4時切りかえの今日
+  function jstToday(){
+    const j = new Date(Date.now() + (9 - 4) * 3600 * 1000);
+    return { y: j.getUTCFullYear(), m: j.getUTCMonth() + 1, d: j.getUTCDate() };
+  }
+  const pad = n => String(n).padStart(2, '0');
+
+  function showComplete(n){
+    const L = LETTERS()[String(n)] || {};
+    const last = n === (ST && ST.lastPic);
+    showModal(picSrc(n), n + '枚目の絵が完成しました ✦',
+      L.text ? '' : (last ? '1年分のあなたが、ここにそろいました。本当に、おめでとう。' : '書いた日のあなたが、この1枚になりました。コレクションにしまっておくね。'),
+      { letter: L.text || '', from: L.from || '', note: '絵を長押しすると、写真に保存できます' });
+  }
+  function showDoor(d, justOpened){
+    if (!d.text) { if (justOpened) showModal('', '秘密の扉がひらきました ✦', d.day + '日の扉の物語は、もうすぐ届きます。'); return; }
+    showModal('', (justOpened ? '秘密の扉がひらきました ✦\n' : '') + (d.title || d.day + '日の扉'), '', { letter: d.text });
+  }
+  function cardKeyList(){
+    const t = jstToday(), md = pad(t.m) + '-' + pad(t.d), ymd = t.y + '-' + md;
+    return { md, ymd };
+  }
+  function checkCard(){
+    if (!ST) return;
+    const k = cardKeyList(), C = CARDS();
+    const c = (C[k.ymd] && C[k.ymd].text) ? [k.ymd, C[k.ymd]] : ((C[k.md] && C[k.md].text) ? [k.md, C[k.md]] : null);
+    if (!c) return;
+    const seen = 'kn_card_' + ST.userId + '_' + k.ymd;
+    try { if (localStorage.getItem(seen)) return; localStorage.setItem(seen, '1'); } catch (e) {}
+    showModal(c[1].img || '', c[1].title || 'ゆわからのカード', '', { letter: c[1].text, from: c[1].from || '' });
+  }
+
+  function drawSky(n){
+    const cv = $('#skyCanvas'); if (!cv) return;
+    const w = cv.clientWidth || 320, h = cv.clientHeight || 200, dpr = window.devicePixelRatio || 1;
+    cv.width = w * dpr; cv.height = h * dpr;
+    const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+    let seed = 20261201;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+    for (let i = 0; i < Math.min(n, 500); i++) {
+      const x = rnd() * w, y = rnd() * h * 0.92, r = 0.9 + rnd() * 1.8, a = 0.6 + rnd() * 0.45;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2);
+      g.fillStyle = 'rgba(255,240,200,' + a + ')'; g.shadowColor = 'rgba(236,212,154,.9)'; g.shadowBlur = 6; g.fill();
+      if ((i + 1) % 30 === 0) {   // 30こごとに、すこし大きな星
+        g.beginPath(); g.arc(x, y, r + 1.4, 0, Math.PI * 2); g.fillStyle = 'rgba(255,248,225,.95)'; g.shadowBlur = 12; g.fill();
+      }
+    }
+  }
+  function renderExtras(){
+    if (!ST) return;
+    const n = totalDays();
+    drawSky(n);
+    $('#skyText').textContent = n ? 'あなたの星：' + n + 'こ　書いた日に、ひとつずつ増えていきます。' : '書いた日に、星がひとつずつ増えていきます。';
+    // 扉
+    const box = $('#doors'); box.innerHTML = '';
+    DOORS().forEach(d => {
+      const b = document.createElement('button');
+      const open = n >= d.day;
+      b.className = 'door ' + (open ? 'open' : 'locked');
+      b.innerHTML = '<span class="k">' + (open ? '✧' : '🗝') + '</span>' + d.day + '日' + (open ? '' : '<br><small>あと' + (d.day - n) + '日</small>');
+      b.onclick = () => open ? showDoor(d, false) : toast('書いた日が' + d.day + '日になったら、ひらきます 🗝');
+      box.appendChild(b);
+    });
+    // てがみ箱：完成した絵の手紙／ひらいた扉／届いたカード
+    const lb = $('#letterBox'); lb.innerHTML = '';
+    const items = [];
+    (ST.done || []).forEach(p => { const L = LETTERS()[String(p)]; if (L && L.text) items.push([p + '枚目の絵から' + (L.from ? '（' + L.from + '）' : ''), () => showComplete(p)]); });
+    DOORS().forEach(d => { if (n >= d.day && d.text) items.push(['秘密の扉 ' + d.day + '日' + (d.title ? '「' + d.title + '」' : ''), () => showDoor(d, false)]); });
+    const t = jstToday(), today = t.y + '-' + pad(t.m) + '-' + pad(t.d);
+    Object.keys(CARDS()).forEach(k => {
+      const c = CARDS()[k]; if (!c.text) return;
+      const full = /^\d{4}-/.test(k) ? k : t.y + '-' + k;
+      if (full <= today) items.push([(c.title || 'ゆわからのカード') + '（' + Number(full.slice(5, 7)) + '/' + Number(full.slice(8)) + '）', () => showModal(c.img || '', c.title || 'ゆわからのカード', '', { letter: c.text, from: c.from || '' })]);
+    });
+    if (!items.length) lb.innerHTML = '<p class="note empty">とどいた手紙は、ここにしまわれます。</p>';
+    items.forEach(([label, fn]) => { const b = document.createElement('button'); b.textContent = '✉ ' + label; b.onclick = fn; lb.appendChild(b); });
+  }
+
   /* ---------- 今日の小さなケア（表示だけ） ---------- */
   function renderCare(){
     const map = window.KAKIKAE_CARE || {};
@@ -897,7 +1040,7 @@
     card.hidden = false;
   }
   renderCare();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) renderCare(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderCare(); if (!$('#main').hidden) checkCard(); } });
 
   /* ---------- はじまり ---------- */
   initPush();
