@@ -884,15 +884,16 @@
 
   /* ---------- 今日の小さなケア（表示だけ） ---------- */
   function renderCare(){
-    const list = (window.KAKIKAE_CARE || []).filter(Boolean);
+    const map = window.KAKIKAE_CARE || {};
     const card = $('#careCard');
-    if (!list.length) { card.hidden = true; return; }
-    const d = new Date(Date.now() - 4 * 3600 * 1000);          // 朝4時で切りかわる
-    const day = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-    const start = Date.UTC(2026, 11, 1);                       // 12月1日が1番目
-    const n = Math.round((day - start) / 86400000);
-    $('#careText').textContent = list[((n % list.length) + list.length) % list.length];
-    $('#careDate').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日';
+    // 日本時間で、朝4時に切りかわる「今日」（端末の時刻設定に左右されない）
+    const j = new Date(Date.now() + (9 - 4) * 3600 * 1000);
+    const m = j.getUTCMonth() + 1, d = j.getUTCDate();
+    const key = String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const text = map[key];
+    if (!text) { card.hidden = true; return; }
+    $('#careText').textContent = text;
+    $('#careDate').textContent = m + '月' + d + '日';
     card.hidden = false;
   }
   renderCare();
