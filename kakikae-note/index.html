@@ -17,6 +17,7 @@
 <script src="letters.js"></script>
 <script src="doors.js"></script>
 <script src="cards.js"></script>
+<script src="town.js"></script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <style>
   :root{
@@ -246,7 +247,7 @@
     box-shadow:inset 0 0 0 1px rgba(201,164,92,.5)}
   .modal .lt-body{margin:0;color:var(--ink);font-size:15px;line-height:2;white-space:pre-wrap}
   .modal .lt-from{margin:10px 0 0;text-align:right;color:var(--ink-s);font-size:13px}
-  .modal .mnote{font-size:12px;margin:-6px 0 12px}
+  .modal .mnote{font-size:12px;margin:-6px 0 12px;white-space:pre-line}
   .sky{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:16/10;
     background:radial-gradient(ellipse at 50% 120%,#2e3576 0%,#141733 60%,#0b0d22 100%);box-shadow:inset 0 0 0 1px rgba(201,164,92,.4)}
   .sky canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -265,6 +266,24 @@
   .treasures button{width:100%;min-width:0;aspect-ratio:1/1;border-radius:50%;padding:8px;background:radial-gradient(circle at 50% 40%,#fffaf0,#efe0c0);
     box-shadow:inset 0 0 0 1px rgba(201,164,92,.55),0 3px 8px rgba(60,40,20,.15);font-size:22px;color:rgba(160,130,80,.5)}
   .treasures button img{width:100%;height:100%;object-fit:contain}
+  .town{position:relative;width:100%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#141733;
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.45),0 6px 18px rgba(20,23,51,.25);-webkit-user-select:none;user-select:none}
+  .town-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .town-items{position:absolute;inset:0}
+  .town-item{position:absolute;transform:translate(-50%,-100%);touch-action:none;cursor:grab;-webkit-touch-callout:none}
+  .town-item img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.28))}
+  .town-item.sel img{filter:drop-shadow(0 0 6px rgba(255,236,170,.95)) drop-shadow(0 0 2px rgba(255,236,170,1))}
+  .town-item.drag{cursor:grabbing}
+  .town-empty{position:absolute;left:8%;right:8%;top:58%;text-align:center;color:#fff8e6;font-size:14px;line-height:1.9;
+    background:rgba(20,23,51,.55);border-radius:10px;padding:14px 8px}
+  .town-tools{margin:12px 0 4px;padding:10px 10px 12px;border-radius:10px;background:rgba(255,250,240,.7);box-shadow:inset 0 0 0 1px rgba(201,164,92,.5);text-align:center}
+  .tt-name{margin:0 0 8px;font-size:14px;color:var(--ink)}
+  .tt-btns{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .tt-btns button{padding:9px 2px;border-radius:8px;font-size:12px;background:#fffaf0;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(201,164,92,.55)}
+  .tray{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .tray button{width:100%;min-width:0;aspect-ratio:1/1;border-radius:10px;padding:6px;background:radial-gradient(circle at 50% 40%,#fffaf0,#efe0c0);
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.55)}
+  .tray button img{width:100%;height:100%;object-fit:contain}
   .modal h3{white-space:pre-line;margin:14px 0 6px;font-size:18px;letter-spacing:.12em}
   .modal p{white-space:pre-line;margin:0 0 14px;color:var(--ink-s);font-size:14px;line-height:1.8}
   .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;
@@ -401,6 +420,34 @@
         <div class="letters" id="letterBox"></div>
       </section>
 
+      <!-- まち -->
+      <section id="tab-town" class="tab" hidden>
+        <div class="head">
+          <div class="orn">✦ ✦ ✦</div>
+          <h1>あなただけの小さな街</h1>
+        </div>
+        <p class="note center" id="townHint">指でさわって、好きな場所へ動かせます。<br>タップすると、大きさや前後を変えられます。</p>
+        <div class="town" id="town">
+          <img class="town-bg" id="townBg" alt="">
+          <div class="town-items" id="townItems"></div>
+          <div class="town-empty" id="townEmpty" hidden>パズルが1枚完成すると、<br>最初の建物が届きます 🏡</div>
+        </div>
+        <div class="town-tools" id="townTools" hidden>
+          <p class="tt-name" id="ttName"></p>
+          <div class="tt-btns">
+            <button data-act="big">＋ 大きく</button>
+            <button data-act="small">－ 小さく</button>
+            <button data-act="front">前へ</button>
+            <button data-act="back">うしろへ</button>
+            <button data-act="off">しまう</button>
+          </div>
+        </div>
+        <div class="divider" id="trayHead" hidden>しまってあるもの</div>
+        <p class="note center" id="trayNote" hidden>タップすると、街に置けます。</p>
+        <div class="tray" id="tray"></div>
+        <p class="center" style="margin-top:22px"><button class="soft-btn" id="townReset">はじめの並びに戻す</button></p>
+      </section>
+
       <!-- きろく -->
       <section id="tab-log" class="tab" hidden>
         <div class="head">
@@ -449,6 +496,7 @@
   <nav class="tabbar">
     <button data-tab="today" class="on"><span class="i">✒</span>きょう</button>
     <button data-tab="puzzle"><span class="i">✧</span>パズル</button>
+    <button data-tab="town"><span class="i">⌂</span>まち</button>
     <button data-tab="log"><span class="i">❦</span>きろく</button>
     <button data-tab="settings"><span class="i">☾</span>せってい</button>
   </nav>
@@ -609,6 +657,7 @@
     document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     $('#main').scrollTo(0, 0);
     if (tab === 'puzzle') { renderPuzzle(); renderExtras(); }
+    if (tab === 'town') renderTown();
     if (tab === 'log') loadHistory();
     if (tab === 'settings') renderSettings();
   }
@@ -968,12 +1017,13 @@
     const last = n === (ST && ST.lastPic);
     showModal(picSrc(n), n + '枚目の絵が完成しました ✦',
       L.text ? (L.from ? L.from + 'から、手紙が届きました ✉' : '') : (last ? '1年分のあなたが、ここにそろいました。本当に、おめでとう。' : '書いた日のあなたが、この1枚になりました。コレクションにしまっておくね。'),
-      { letter: L.text || '', note: '絵を長押しすると、写真に保存できます' });
+      { letter: L.text || '', note: '絵を長押しすると、写真に保存できます' + (townNameFor(n) ? '\n🏘 街に「' + townNameFor(n) + '」が建ちました' : '') });
   }
   function showDoor(d, justOpened){
     if (!d.text) { if (justOpened) showModal('', '秘密の扉がひらきました ✦', d.day + '日の扉の物語は、もうすぐ届きます。'); return; }
     showModal(d.img || '', (justOpened ? '秘密の扉がひらきました ✦\n' : '') + (d.no ? '第' + d.no + '話　' : '') + (d.title || d.day + '日の扉'), '', { letter: d.text });
     if (justOpened && d.treasure && d.treasure.img) showTreasure(d.treasure, true);
+    if (justOpened && townNameForDay(d.day)) showModal('images/town/' + TOWN.buildings.find(x => x.day === d.day && !x.pic).id + '.webp', '🏘 街に「' + townNameForDay(d.day) + '」が建ちました', '「まち」のページで、好きな場所に動かせます。', { treasure: true });
   }
   function showTreasure(t, got){
     showModal(t.img, (got ? '宝物を受け取りました ✦\n' : '') + t.name, (t.desc ? t.desc : '') + (got ? (t.desc ? '\n' : '') + '宝物箱に、しまっておくね。' : ''), { treasure: true });
@@ -1046,6 +1096,158 @@
     if (!items.length) lb.innerHTML = '<p class="note empty">とどいた手紙は、ここにしまわれます。</p>';
     items.forEach(([label, fn]) => { const b = document.createElement('button'); b.textContent = '✉ ' + label; b.onclick = fn; lb.appendChild(b); });
   }
+
+  /* ---------- あなただけの小さな街 ---------- */
+  const TOWN = window.KAKIKAE_TOWN || { buildings: [], treasures: [] };
+  let townLayout = null, townSel = null, townLoaded = false, townSaveT = null;
+  const townKey = () => 'kn_town_' + (ST ? ST.userId : '');
+
+  // 持っている建物と宝物（パズルの完成と、書いた日の合計から）
+  function townOwned(){
+    const n = totalDays(), done = (ST && ST.done) || [], out = [];
+    TOWN.buildings.forEach(b => {
+      if ((b.pic && done.indexOf(b.pic) >= 0) || (b.day && n >= b.day))
+        out.push({ id: b.id, name: b.name, img: 'images/town/' + b.id + '.webp', x: b.x, y: b.y, w: b.w });
+    });
+    const D = DOORS();
+    TOWN.treasures.forEach(t => {
+      const d = D.find(x => x.day === t.door);
+      if (d && d.treasure && d.treasure.img && n >= d.day)
+        out.push({ id: 't' + t.door, name: d.treasure.name, img: d.treasure.img, x: t.x, y: t.y, w: t.w });
+    });
+    return out;
+  }
+  function townDefault(it){ return { x: it.x, y: it.y, s: 1, z: Math.round(it.y * 10), on: true }; }
+  function townGetLayout(){
+    if (townLayout) return townLayout;
+    try { townLayout = JSON.parse(localStorage.getItem(townKey()) || 'null'); } catch (e) { townLayout = null; }
+    if (!townLayout || typeof townLayout !== 'object') townLayout = { items: {} };
+    if (!townLayout.items) townLayout.items = {};
+    return townLayout;
+  }
+  function townSave(){
+    try { localStorage.setItem(townKey(), JSON.stringify(townLayout)); } catch (e) {}
+    clearTimeout(townSaveT);
+    townSaveT = setTimeout(() => { api('townSave', { town: JSON.stringify(townLayout) }).catch(() => {}); }, 1200);
+  }
+  // スプシに保存してある並びを読む（機種変更しても戻るように）
+  async function townFetch(){
+    if (townLoaded) return;
+    townLoaded = true;
+    try {
+      const j = await api('townGet');
+      if (j.town) {
+        const t = JSON.parse(j.town);
+        const local = townGetLayout();
+        if (t && t.items && (!local.t || (t.t || 0) > local.t)) {
+          townLayout = t;
+          try { localStorage.setItem(townKey(), JSON.stringify(t)); } catch (e) {}
+          renderTown(true);
+        }
+      }
+    } catch (e) { /* まだ保存のしくみがないときは、この端末の中だけに保存 */ }
+  }
+
+  function renderTown(skipFetch){
+    if (!ST) return;
+    $('#townBg').src = TOWN.bg;
+    const L = townGetLayout(), owned = townOwned(), box = $('#townItems'), tray = $('#tray');
+    owned.forEach(it => { if (!L.items[it.id]) L.items[it.id] = townDefault(it); });
+    box.innerHTML = ''; tray.innerHTML = '';
+    let onCount = 0, offCount = 0;
+    owned.forEach(it => {
+      const p = L.items[it.id];
+      if (p.on) {
+        onCount++;
+        const el = document.createElement('div');
+        el.className = 'town-item' + (townSel === it.id ? ' sel' : '');
+        el.dataset.id = it.id;
+        el.style.left = p.x + '%'; el.style.top = p.y + '%';
+        el.style.width = (it.w * p.s) + '%'; el.style.zIndex = p.z;
+        el.innerHTML = '<img alt="" src="' + it.img + '">';
+        townDrag(el, it);
+        box.appendChild(el);
+      } else {
+        offCount++;
+        const b = document.createElement('button');
+        b.innerHTML = '<img alt="" src="' + it.img + '">';
+        b.setAttribute('aria-label', it.name);
+        b.onclick = () => { p.on = true; p.x = 50; p.y = 62; p.z = townTopZ() + 1; townSel = it.id; townLayout.t = Date.now(); townSave(); renderTown(true); toast(it.name + 'を置きました'); };
+        tray.appendChild(b);
+      }
+    });
+    $('#townEmpty').hidden = owned.length > 0;
+    $('#trayHead').hidden = $('#trayNote').hidden = offCount === 0;
+    $('#townReset').parentNode.hidden = owned.length === 0;
+    const sel = owned.find(x => x.id === townSel && L.items[x.id].on);
+    $('#townTools').hidden = !sel;
+    if (sel) $('#ttName').textContent = sel.name;
+    if (!skipFetch) townFetch();
+  }
+  function townTopZ(){ return Math.max(0, ...Object.values(townGetLayout().items).map(p => p.z || 0)); }
+  function townBottomZ(){ return Math.min(1000, ...Object.values(townGetLayout().items).map(p => p.z || 0)); }
+
+  // 指で動かす
+  function townDrag(el, it){
+    let sx, sy, ox, oy, moved, rect, active = false;
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      rect = $('#town').getBoundingClientRect();
+      const p = townLayout.items[it.id];
+      sx = e.clientX; sy = e.clientY; ox = p.x; oy = p.y; moved = false; active = true;
+      try { el.setPointerCapture(e.pointerId); } catch (er) {}
+      el.classList.add('drag');
+    });
+    el.addEventListener('pointermove', e => {
+      if (!active) return;
+      const dx = (e.clientX - sx) / rect.width * 100, dy = (e.clientY - sy) / rect.height * 100;
+      if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 6) return;
+      moved = true;
+      const p = townLayout.items[it.id];
+      p.x = Math.min(100, Math.max(0, ox + dx));
+      p.y = Math.min(102, Math.max(6, oy + dy));
+      el.style.left = p.x + '%'; el.style.top = p.y + '%';
+    });
+    const end = e => {
+      if (!active) return;
+      active = false;
+      try { el.releasePointerCapture(e.pointerId); } catch (er) {}
+      el.classList.remove('drag');
+      townSel = it.id;
+      if (moved) { townLayout.t = Date.now(); townSave(); }
+      document.querySelectorAll('.town-item').forEach(x => x.classList.toggle('sel', x.dataset.id === it.id));
+      $('#townTools').hidden = false; $('#ttName').textContent = it.name;
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
+  // 何もないところをタップしたら、えらぶのをやめる
+  $('#town').addEventListener('pointerdown', e => {
+    if (e.target.closest('.town-item')) return;
+    townSel = null;
+    document.querySelectorAll('.town-item').forEach(x => x.classList.remove('sel'));
+    $('#townTools').hidden = true;
+  });
+  document.querySelectorAll('.tt-btns button').forEach(b => b.onclick = () => {
+    if (!townSel) return;
+    const p = townGetLayout().items[townSel]; if (!p) return;
+    const a = b.dataset.act;
+    if (a === 'big') p.s = Math.min(2.6, +(p.s * 1.15).toFixed(3));
+    if (a === 'small') p.s = Math.max(0.4, +(p.s / 1.15).toFixed(3));
+    if (a === 'front') p.z = townTopZ() + 1;
+    if (a === 'back') p.z = townBottomZ() - 1;
+    if (a === 'off') { p.on = false; townSel = null; }
+    townLayout.t = Date.now(); townSave(); renderTown(true);
+  });
+  let resetArmed = 0;
+  $('#townReset').onclick = () => {
+    if (Date.now() - resetArmed > 4000) { resetArmed = Date.now(); toast('もう一度おすと、はじめの並びに戻ります'); return; }
+    resetArmed = 0;
+    townLayout = { items: {}, t: Date.now() }; townSel = null; townSave(); renderTown(true);
+    toast('はじめの並びに戻しました');
+  };
+  function townNameFor(pic){ const b = TOWN.buildings.find(x => x.pic === pic); return b ? b.name : ''; }
+  function townNameForDay(day){ const b = TOWN.buildings.find(x => x.day === day && !x.pic); return b ? b.name : ''; }
 
   /* ---------- 今日の小さなケア（表示だけ） ---------- */
   function renderCare(){
