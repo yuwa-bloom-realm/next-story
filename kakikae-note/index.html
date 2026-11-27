@@ -260,6 +260,11 @@
   .letters button{text-align:left;padding:12px 14px;border-radius:8px;background:rgba(255,250,240,.6);font-size:14px;color:var(--ink);
     box-shadow:inset 0 0 0 1px rgba(201,164,92,.45)}
   .letters .empty{text-align:center}
+  .modal img.treasure{width:62%;margin:6px auto 0;border:none;border-image:none;filter:drop-shadow(0 6px 14px rgba(120,80,20,.35))}
+  .treasures{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .treasures button{width:100%;min-width:0;aspect-ratio:1/1;border-radius:50%;padding:8px;background:radial-gradient(circle at 50% 40%,#fffaf0,#efe0c0);
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.55),0 3px 8px rgba(60,40,20,.15);font-size:22px;color:rgba(160,130,80,.5)}
+  .treasures button img{width:100%;height:100%;object-fit:contain}
   .modal h3{white-space:pre-line;margin:14px 0 6px;font-size:18px;letter-spacing:.12em}
   .modal p{margin:0 0 14px;color:var(--ink-s);font-size:14px;line-height:1.8}
   .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;
@@ -389,6 +394,9 @@
         <div class="divider">秘密の扉</div>
         <div class="doors" id="doors"></div>
 
+        <div class="divider">宝物箱</div>
+        <div class="treasures" id="treasureBox"></div>
+
         <div class="divider">てがみ箱</div>
         <div class="letters" id="letterBox"></div>
       </section>
@@ -511,6 +519,7 @@
     opt = opt || {};
     if (!$('#modal').hidden) { modalQ.push([img, title, text, opt]); return; }
     $('#modalImg').src = img || ''; $('#modalImg').hidden = !img;
+    $('#modalImg').classList.toggle('treasure', !!opt.treasure);
     $('#modalTitle').textContent = title || ''; $('#modalText').textContent = text || '';
     $('#modalText').hidden = !text;
     $('#modalLetter').hidden = !opt.letter;
@@ -963,7 +972,11 @@
   }
   function showDoor(d, justOpened){
     if (!d.text) { if (justOpened) showModal('', '秘密の扉がひらきました ✦', d.day + '日の扉の物語は、もうすぐ届きます。'); return; }
-    showModal('', (justOpened ? '秘密の扉がひらきました ✦\n' : '') + (d.title || d.day + '日の扉'), '', { letter: d.text });
+    showModal(d.img || '', (justOpened ? '秘密の扉がひらきました ✦\n' : '') + (d.no ? '第' + d.no + '話　' : '') + (d.title || d.day + '日の扉'), '', { letter: d.text });
+    if (justOpened && d.treasure && d.treasure.img) showTreasure(d.treasure, true);
+  }
+  function showTreasure(t, got){
+    showModal(t.img, (got ? '宝物を受け取りました ✦\n' : '') + t.name, got ? '宝物箱に、しまっておくね。' : '', { treasure: true });
   }
   function cardKeyList(){
     const t = jstToday(), md = pad(t.m) + '-' + pad(t.d), ymd = t.y + '-' + md;
@@ -1009,6 +1022,15 @@
       b.innerHTML = '<span class="k">' + (open ? '✧' : '🗝') + '</span>' + d.day + '日' + (open ? '' : '<br><small>あと' + (d.day - n) + '日</small>');
       b.onclick = () => open ? showDoor(d, false) : toast('書いた日が' + d.day + '日になったら、ひらきます 🗝');
       box.appendChild(b);
+    });
+    // 宝物箱：ひらいた扉の宝物
+    const tb = $('#treasureBox'); tb.innerHTML = '';
+    DOORS().forEach(d => {
+      const b = document.createElement('button');
+      const has = n >= d.day && d.treasure && d.treasure.img;
+      if (has) { b.innerHTML = '<img alt="" src="' + d.treasure.img + '">'; b.onclick = () => showTreasure(d.treasure, false); }
+      else { b.textContent = '？'; b.onclick = () => toast(d.day + '日の扉の向こうに、宝物がねむっています'); }
+      tb.appendChild(b);
     });
     // てがみ箱：完成した絵の手紙／ひらいた扉／届いたカード
     const lb = $('#letterBox'); lb.innerHTML = '';
