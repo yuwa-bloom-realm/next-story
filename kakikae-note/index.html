@@ -967,8 +967,8 @@
     const L = LETTERS()[String(n)] || {};
     const last = n === (ST && ST.lastPic);
     showModal(picSrc(n), n + '枚目の絵が完成しました ✦',
-      L.text ? '' : (last ? '1年分のあなたが、ここにそろいました。本当に、おめでとう。' : '書いた日のあなたが、この1枚になりました。コレクションにしまっておくね。'),
-      { letter: L.text || '', from: L.from || '', note: '絵を長押しすると、写真に保存できます' });
+      L.text ? (L.from ? L.from + 'から、手紙が届きました ✉' : '') : (last ? '1年分のあなたが、ここにそろいました。本当に、おめでとう。' : '書いた日のあなたが、この1枚になりました。コレクションにしまっておくね。'),
+      { letter: L.text || '', note: '絵を長押しすると、写真に保存できます' });
   }
   function showDoor(d, justOpened){
     if (!d.text) { if (justOpened) showModal('', '秘密の扉がひらきました ✦', d.day + '日の扉の物語は、もうすぐ届きます。'); return; }
