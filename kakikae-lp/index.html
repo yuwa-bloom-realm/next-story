@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>書き換えノート 第1期｜12月1日から使える、あなたを取り戻すアプリ</title>
+<title>書き換えノート｜12月1日から使える、あなたを取り戻すアプリ</title>
 <meta name="description" content="毎日3行だけ書くアプリ「書き換えノート」。書いた3行にゆわのひと言が届き、毎日ひとつ「今日の小さなケア」が届きます。12月1日開始・申込締切11月30日。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="書き換えノート 第1期｜あなたを取り戻すアプリ">
+<meta property="og:title" content="書き換えノート｜あなたを取り戻すアプリ">
 <meta property="og:description" content="1日たった3行。書いた3行に、ゆわのひと言が届きます。12月1日開始。">
 <meta property="og:image" content="https://yuwa-bloom-realm.github.io/next-story/kakikae-lp/images/ogp.jpg">
 <meta property="og:url" content="https://yuwa-bloom-realm.github.io/next-story/kakikae-lp/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#141733">
+<script>document.documentElement.classList.add('js')</script>
 <script src="../kakikae-note/config.js"></script>
 <style>
   :root{
@@ -111,6 +112,41 @@
   .done{display:none;text-align:center}
   .done .big{font-size:20px;color:var(--gold-d);margin-bottom:10px}
 
+
+  /* ---------- 動き ---------- */
+  .twinkles{position:absolute;inset:0;pointer-events:none}
+  .twinkles i{position:absolute;font-style:normal;font-size:var(--s);color:#fff3c9;text-shadow:0 0 8px rgba(255,236,170,.95),0 0 16px rgba(236,212,154,.6);
+    opacity:0;animation:twinkle 3.6s ease-in-out var(--d) infinite}
+  @keyframes twinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}45%{opacity:1;transform:scale(1.1) rotate(20deg)}60%{opacity:.85;transform:scale(.9) rotate(30deg)}}
+  .js .page{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s ease}
+  .js .page.show{opacity:1;transform:none}
+  .g .icon.sky{position:relative;overflow:hidden}
+  .sky b{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff3c9;box-shadow:0 0 6px 1px rgba(255,236,170,.9);
+    opacity:0;transform:scale(.2);transition:opacity .6s ease,transform .6s ease}
+  .sky b.on{opacity:1;transform:scale(1)}
+  .sky b.big{width:5px;height:5px}
+  .sky.fade b{opacity:0;transition:opacity 1.2s ease}
+  .float{animation:floaty 3.6s ease-in-out infinite}
+  .float.f2{animation-delay:-1.8s}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .door-wrap{position:relative;display:block;width:84px;height:84px;border-radius:8px;overflow:hidden;cursor:pointer;
+    animation:doorGlow 2.8s ease-in-out infinite}
+  .door-wrap img{width:84px;height:84px;object-fit:cover}
+  .door-wrap::after{content:"";position:absolute;inset:-30%;background:linear-gradient(115deg,transparent 35%,rgba(255,240,190,.55) 50%,transparent 65%);
+    transform:translateX(-70%);animation:doorShine 3.4s ease-in-out infinite}
+  .door-wrap.tap{animation:doorTap .7s ease}
+  @keyframes doorGlow{0%,100%{box-shadow:0 0 0 1px rgba(201,164,92,.5),0 0 6px rgba(236,212,154,.35)}50%{box-shadow:0 0 0 1px rgba(236,212,154,.9),0 0 18px rgba(255,226,150,.85)}}
+  @keyframes doorShine{0%,55%{transform:translateX(-70%)}85%,100%{transform:translateX(70%)}}
+  @keyframes doorTap{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.08);filter:brightness(1.5)}100%{transform:scale(1);filter:brightness(1)}}
+  .cta{position:relative;overflow:hidden}
+  .cta::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:30%;transform:skewX(-20deg);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);animation:ctaShine 4.5s ease-in-out infinite}
+  @keyframes ctaShine{0%,70%{left:-40%}88%,100%{left:120%}}
+  @media (prefers-reduced-motion: reduce){
+    .twinkles i,.float,.door-wrap,.door-wrap::after,.cta::after{animation:none}
+    .twinkles i{opacity:.8}
+    .js .page{opacity:1;transform:none;transition:none}
+  }
   footer{text-align:center;color:rgba(236,212,154,.7);font-size:12px;letter-spacing:.1em;padding:14px 0 30px}
 </style>
 </head>
@@ -120,6 +156,13 @@
   <!-- トップ -->
   <header class="hero">
     <div class="stars"></div>
+    <div class="twinkles" aria-hidden="true">
+      <i style="left:6%;top:9%;--d:0s;--s:16px">✦</i><i style="left:90%;top:6%;--d:.8s;--s:12px">✦</i>
+      <i style="left:82%;top:34%;--d:1.6s;--s:18px">✦</i><i style="left:10%;top:42%;--d:2.3s;--s:11px">✦</i>
+      <i style="left:50%;top:3%;--d:1.1s;--s:10px">✧</i><i style="left:94%;top:60%;--d:.4s;--s:13px">✧</i>
+      <i style="left:3%;top:70%;--d:1.9s;--s:14px">✧</i><i style="left:70%;top:82%;--d:2.7s;--s:10px">✦</i>
+      <i style="left:28%;top:88%;--d:.2s;--s:12px">✦</i><i style="left:38%;top:20%;--d:3.1s;--s:9px">✧</i>
+    </div>
     <img class="top-img" id="topImg" src="images/top.jpg" alt="書き換えノート　自分のことまで、後回しにしなくていい。来年の私に、12月から魔法をかけよう。"
       onerror="this.remove();document.getElementById('fallback').hidden=false">
     <div class="fallback" id="fallback" hidden>
@@ -128,7 +171,7 @@
       <p class="sub">来年の私に、12月から魔法をかけよう。</p>
     </div>
     <p class="sub" style="margin-top:22px">12月1日から使える、あなただけの、<br>あなたを取り戻すアプリ。</p>
-    <span class="badge">第1期　12月1日（火）スタート</span>
+    <span class="badge">12月1日（火）スタート</span>
   </header>
 
   <!-- 問いかけ -->
@@ -166,10 +209,10 @@
     <p class="orn">✦ ✦ ✦</p>
     <h2>続けたくなる、しかけ</h2>
     <div class="gimmick">
-      <div class="g"><div class="icon">✦</div><p>書いた日が増えるたび、星空に星が増えていく。</p></div>
-      <div class="g"><img src="../kakikae-note/images/puzzle_01.png" alt="" loading="lazy"><p>パズルが完成するたび、絵の中の住人から手紙が届く（全16通）。</p></div>
-      <div class="g"><img src="../kakikae-note/images/town/b02.webp" alt="" loading="lazy" style="object-fit:contain;background:radial-gradient(ellipse at 50% 120%,#2e3576,#141733)"><p>パズルの完成で建物が増えて、「あなただけの小さな街」が育っていく。</p></div>
-      <div class="g"><img src="../kakikae-note/images/doors/door_01.png" alt="" loading="lazy"><p>節目の日には「秘密の扉」が開いて、短い物語と宝物が待っている。</p></div>
+      <div class="g"><div class="icon sky" id="skyIcon" aria-hidden="true"></div><p>書いた日が増えるたび、星空に星が増えていく。</p></div>
+      <div class="g"><img class="float" src="../kakikae-note/images/puzzle_01.png" alt="" loading="lazy"><p>パズルが完成するたび、絵の中の住人から手紙が届く（全16通）。</p></div>
+      <div class="g"><img class="float f2" src="../kakikae-note/images/town/b02.webp" alt="" loading="lazy" style="object-fit:contain;background:radial-gradient(ellipse at 50% 120%,#2e3576,#141733)"><p>パズルの完成で建物が増えて、「あなただけの小さな街」が育っていく。</p></div>
+      <div class="g"><span class="door-wrap" id="doorWrap"><img src="../kakikae-note/images/doors/door_01.png" alt="" loading="lazy"></span><p>節目の日には「秘密の扉」が開いて、短い物語と宝物が待っている。</p></div>
     </div>
     <p class="center" style="margin-top:18px"><span class="em">休んでも、集めたものは消えません。</span></p>
   </section>
@@ -235,7 +278,7 @@
       <p class="soft" style="font-size:14px">メールが届かないときは、迷惑メールのフォルダも見てみてください。</p>
     </div>
     <div class="done" id="closed">
-      <p class="big">第1期の受付は終了しました</p>
+      <p class="big">今回の受付は終了しました</p>
       <p>たくさんのお申し込み、ありがとうございました。<br>次回のご案内を、楽しみに待っていてくださいね。</p>
     </div>
   </section>
@@ -247,6 +290,50 @@
 (function(){
   const $ = s => document.querySelector(s);
   const CFG = window.KAKIKAE_CONFIG || {};
+
+
+  // ---------- 動き ----------
+  document.documentElement.classList.add('js');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // セクションがふわっと浮かぶ
+  const pages = Array.from(document.querySelectorAll('.page'));
+  if (reduce) pages.forEach(p => p.classList.add('show'));
+  else {
+    // 画面に入ったら表示（どのブラウザでも必ず出るように、スクロールと時間の両方で確かめる）
+    const check = () => {
+      const h = window.innerHeight || document.documentElement.clientHeight;
+      pages.forEach(p => { if (!p.classList.contains('show') && p.getBoundingClientRect().top < h * 0.9) p.classList.add('show'); });
+    };
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    window.addEventListener('load', check);
+    requestAnimationFrame(check); setInterval(check, 700);
+  }
+  // 星空：星がひとつずつ増えていく
+  const sky = $('#skyIcon');
+  if (sky) {
+    const N = 22, stars = [];
+    let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for (let i = 0; i < N; i++) {
+      const b = document.createElement('b');
+      b.style.left = (8 + rnd() * 84) + '%'; b.style.top = (8 + rnd() * 84) + '%';
+      if (i % 7 === 6) b.className = 'big';
+      sky.appendChild(b); stars.push(b);
+    }
+    if (reduce) stars.forEach(b => b.classList.add('on'));
+    else {
+      let k = 0;
+      setInterval(() => {
+        if (k < N) { stars[k++].classList.add('on'); }
+        else if (k === N) { k++; }
+        else { sky.classList.add('fade'); stars.forEach(b => b.classList.remove('on'));
+          setTimeout(() => sky.classList.remove('fade'), 1300); k = 0; }
+      }, 420);
+    }
+  }
+  // 秘密の扉：タップでキラッ
+  const door = $('#doorWrap');
+  if (door) door.addEventListener('click', () => { door.classList.remove('tap'); void door.offsetWidth; door.classList.add('tap'); });
 
   // 締切（11月30日 24時・日本時間）を過ぎたら、フォームを閉じる
   const CLOSE = Date.parse('2026-12-01T00:00:00+09:00');
