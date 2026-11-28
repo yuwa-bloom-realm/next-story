@@ -117,6 +117,12 @@
   .motto p{margin:0}
   .future{margin:26px 0 18px;padding:22px 16px 6px;border-top:1px dashed rgba(142,111,50,.45);border-bottom:1px dashed rgba(142,111,50,.45)}
   .umaibo{width:78%;margin:22px auto 18px;border-radius:14px;box-shadow:0 0 0 3px #f8efdc,0 0 0 5px rgba(201,164,92,.6),0 8px 20px rgba(60,40,20,.25)}
+  .sem-box{margin:0 auto 20px;max-width:300px;padding:18px 12px;text-align:center;border-radius:12px;color:#fff8e6;
+    background:radial-gradient(ellipse at 50% 0%,#2e3576,#141733 85%);box-shadow:0 0 0 1px rgba(201,164,92,.6),0 6px 18px rgba(20,23,51,.3)}
+  .sem-date{margin:0;font-size:16px;line-height:1.7;color:#f3e7c8}
+  .sem-date b{font-size:28px;letter-spacing:.04em;color:var(--gold-l)}
+  .sem-tag{display:inline-block;margin:8px 0 0;padding:4px 14px;border-radius:999px;font-size:13px;letter-spacing:.1em;color:var(--night);background:linear-gradient(180deg,#fff0c4,#d8b465)}
+  .sem-btn{background:linear-gradient(180deg,#2e3576,#141733);color:#fff3c9;box-shadow:0 0 0 1px rgba(201,164,92,.7),0 4px 14px rgba(20,23,51,.35)}
   .contents{list-style:none;margin:20px 0 14px;padding:16px 16px 6px;border-radius:10px;background:#f8efdc;box-shadow:inset 0 0 0 1px rgba(201,164,92,.5)}
   .contents li{position:relative;padding:0 0 10px 26px;font-size:16px;line-height:1.9}
   .contents li::before{content:"✦";position:absolute;left:2px;top:0;color:var(--gold)}
@@ -349,6 +355,45 @@
     <a class="cta" href="#apply">申し込む</a>
   </section>
 
+  <!-- 説明会 -->
+  <section class="page" id="seminar">
+    <p class="orn">✦ ✦ ✦</p>
+    <h2>迷っているあなたへ。</h2>
+    <p class="center em" style="margin-bottom:18px">実際のアプリ、お見せします。</p>
+    <div class="sem-box">
+      <p class="sem-date">11月29日（日）<br><b>20:00〜20:30</b></p>
+      <p class="sem-tag">Zoom・無料</p>
+    </div>
+    <p class="center">星空、パズル、小さな街、秘密の扉。<br>画面を見ながら、全部お伝えします。<br>気になることは、その場で聞いてください。</p>
+    <p class="center soft" style="font-size:15px">申込の締切は11月30日（月）。<br>見るだけでも、大丈夫です。</p>
+    <div id="semArea">
+      <form id="semForm" novalidate>
+        <label for="sName">お名前<span class="req">必須</span></label>
+        <input type="text" id="sName" name="name" autocomplete="name" placeholder="ニックネームでも大丈夫です" maxlength="60">
+        <label for="sMail">メールアドレス<span class="req">必須</span></label>
+        <input type="email" id="sMail" name="mail" autocomplete="email" inputmode="email" placeholder="Zoomのリンクをお送りします" maxlength="120">
+        <label>お使いのスマホ<span class="req">必須</span></label>
+        <div class="radios">
+          <label><input type="radio" name="phone" value="iPhone"><span>iPhone</span></label>
+          <label><input type="radio" name="phone" value="Android"><span>Android</span></label>
+          <label><input type="radio" name="phone" value="その他・わからない"><span>その他</span></label>
+        </div>
+        <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off">
+        <p class="err" id="sErr"></p>
+        <button class="cta sem-btn" type="submit" id="sSend">説明会に参加する（無料）</button>
+      </form>
+    </div>
+    <div class="done" id="semDone">
+      <p class="big">お申し込み、ありがとうございます 🌙</p>
+      <p>確認のメールをお送りしました。<br>当日のZoomリンクは、メールでお送りします。</p>
+      <p class="soft" style="font-size:14px">メールが届かないときは、迷惑メールのフォルダも見てみてください。</p>
+    </div>
+    <div class="done" id="semClosed">
+      <p class="big">説明会の受付は終了しました</p>
+      <p>このあとの「お申し込み」から、そのままお申し込みいただけます。</p>
+    </div>
+  </section>
+
   <!-- 申込 -->
   <section class="page" id="apply">
     <p class="orn">✦ ✦ ✦</p>
@@ -486,6 +531,34 @@
   // 秘密の扉：タップでキラッ
   const door = $('#doorWrap');
   if (door) door.addEventListener('click', () => { door.classList.remove('tap'); void door.offsetWidth; door.classList.add('tap'); });
+
+  // 説明会：11月29日 20:30 を過ぎたら受付を閉じる
+  const SEM_CLOSE = Date.parse('2026-11-29T20:30:00+09:00');
+  if (Date.now() >= SEM_CLOSE) { $('#semArea').style.display = 'none'; $('#semClosed').style.display = 'block'; }
+  $('#semForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    const name = f.name.value.trim(), mail = f.mail.value.trim();
+    const phone = (f.querySelector('input[name=phone]:checked') || {}).value || '';
+    const err = $('#sErr'); err.textContent = '';
+    if (!name) { err.textContent = 'お名前を入れてください'; f.name.focus(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { err.textContent = 'メールアドレスを確かめてください'; f.mail.focus(); return; }
+    if (!phone) { err.textContent = 'お使いのスマホを選んでください'; return; }
+    const btn = $('#sSend'); btn.disabled = true; btn.textContent = '送っています…';
+    try {
+      const res = await fetch(CFG.GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'seminar', name, mail, phone, website: f.website.value })
+      });
+      const j = await res.json();
+      if (!j.ok) throw new Error(j.error || 'error');
+      $('#semArea').style.display = 'none'; $('#semDone').style.display = 'block';
+    } catch (x) {
+      err.textContent = 'うまく送れませんでした。電波のよいところで、もう一度ためしてください。';
+      btn.disabled = false; btn.textContent = '説明会に参加する（無料）';
+    }
+  });
 
   // 締切（11月30日 24時・日本時間）を過ぎたら、フォームを閉じる
   const CLOSE = Date.parse('2026-12-01T00:00:00+09:00');
