@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>書き換えノート 第1期｜12月1日から使える、あなたを取り戻すアプリ</title>
+<meta name="description" content="毎日3行だけ書くアプリ「書き換えノート」。書いた3行にゆわのひと言が届き、毎日ひとつ「今日の小さなケア」が届きます。12月1日開始・申込締切11月30日。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="書き換えノート 第1期｜あなたを取り戻すアプリ">
+<meta property="og:description" content="1日たった3行。書いた3行に、ゆわのひと言が届きます。12月1日開始。">
+<meta property="og:image" content="https://yuwa-bloom-realm.github.io/next-story/kakikae-lp/images/ogp.jpg">
+<meta property="og:url" content="https://yuwa-bloom-realm.github.io/next-story/kakikae-lp/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#141733">
+<script src="../kakikae-note/config.js"></script>
+<style>
+  :root{
+    --night:#141733; --night2:#1f2450; --gold:#c9a45c; --gold-l:#ecd49a; --gold-d:#8e6f32;
+    --paper:#f7efdc; --paper2:#efe2c8; --ink:#3b2f2a; --ink-s:#7d6a5c; --rose:#a8505e;
+    --serif:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","Noto Serif CJK JP",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;color:var(--ink);font-family:var(--serif);-webkit-text-size-adjust:100%}
+  body{background:radial-gradient(ellipse at 50% -10%,#2e3576 0%,var(--night) 55%,#0b0d22 100%) fixed;background-color:var(--night)}
+  img{max-width:100%;display:block}
+  .wrap{max-width:560px;margin:0 auto;padding:0 0 60px}
+
+  /* トップ */
+  .hero{position:relative;text-align:center;color:#fff8e6;padding:34px 22px 30px;overflow:hidden}
+  .hero .top-img{width:100%;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 1px rgba(201,164,92,.5)}
+  .hero .fallback{padding:26px 8px 8px}
+  .hero .kicker{margin:0;font-size:15px;line-height:2;letter-spacing:.08em;color:var(--gold-l)}
+  .hero h1{margin:6px 0 4px;font-size:clamp(30px,9vw,42px);letter-spacing:.1em;white-space:nowrap;font-weight:600;
+    background:linear-gradient(180deg,#fff3c9,#e8c77c 55%,#b98d3f);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 24px rgba(236,212,154,.25)}
+  .hero .sub{margin:14px 0 0;font-size:15px;line-height:2;color:#f3e7c8}
+  .stars{position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff8,transparent),radial-gradient(1px 1px at 78% 12%,#fff9,transparent),
+    radial-gradient(1.5px 1.5px at 88% 46%,#fff7,transparent),radial-gradient(1px 1px at 24% 62%,#fff8,transparent),
+    radial-gradient(1.2px 1.2px at 54% 30%,#fff6,transparent),radial-gradient(1px 1px at 8% 84%,#fff7,transparent)}
+  .badge{display:inline-block;margin-top:18px;padding:7px 18px;border-radius:999px;font-size:13px;letter-spacing:.08em;
+    color:var(--night);background:linear-gradient(180deg,#fff0c4,#d8b465);box-shadow:0 2px 10px rgba(236,212,154,.35)}
+
+  /* 紙のページ */
+  .page{margin:0 14px 18px;padding:30px 22px;border-radius:6px;background:var(--paper);
+    background-image:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%),url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 0 0 1px rgba(201,164,92,.35)}
+  .orn{text-align:center;color:var(--gold);letter-spacing:.6em;font-size:12px;margin:0 0 10px}
+  h2{margin:0 0 18px;text-align:center;font-size:21px;letter-spacing:.1em;font-weight:600;color:var(--ink)}
+  p{margin:0 0 16px;font-size:16px;line-height:2.05}
+  .center{text-align:center}
+  .q{font-size:17px;line-height:2.1}
+  .q strong{color:var(--rose);font-weight:600}
+  .soft{color:var(--ink-s)}
+  .em{font-size:18px;color:var(--gold-d);font-weight:600}
+
+  .three{list-style:none;margin:4px 0 20px;padding:0;counter-reset:n}
+  .three li{position:relative;margin:0 0 10px;padding:14px 14px 14px 52px;border-radius:8px;background:#fffaf0;
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.45);font-size:16px;line-height:1.8;counter-increment:n}
+  .three li::before{content:counter(n);position:absolute;left:14px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff8e6;background:linear-gradient(180deg,#2b336b,#141733)}
+  .three small{display:block;color:var(--ink-s);font-size:13px}
+
+  .gimmick{display:grid;gap:14px;margin:6px 0 8px}
+  .g{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:center;padding:12px;border-radius:10px;background:#fffaf0;
+    box-shadow:inset 0 0 0 1px rgba(201,164,92,.45)}
+  .g img{width:84px;height:84px;object-fit:cover;border-radius:8px}
+  .g p{margin:0;font-size:15px;line-height:1.85}
+  .g .icon{width:84px;height:84px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:34px;
+    background:radial-gradient(ellipse at 50% 120%,#2e3576,#141733);color:var(--gold-l)}
+
+  .care{margin:6px 0 18px;padding:16px;text-align:center;border-radius:10px;background:rgba(255,250,240,.75);box-shadow:inset 0 0 0 1px rgba(201,164,92,.5)}
+  .care .t{margin:0 0 6px;font-size:12px;letter-spacing:.2em;color:var(--gold-d)}
+  .care .c{margin:0;font-size:17px}
+  .care .s{margin:6px 0 0;font-size:12px;line-height:1.8;color:var(--ink-s)}
+
+  .info{margin:0 0 18px;padding:0;list-style:none}
+  .info li{padding:12px 4px;border-bottom:1px dashed rgba(142,111,50,.4);font-size:16px;line-height:1.85}
+  .info li b{color:var(--gold-d);font-weight:600}
+
+  .price-box{margin:22px 0 18px;padding:24px 16px;text-align:center;border-radius:10px;color:#fff8e6;
+    background:radial-gradient(ellipse at 50% 0%,#2e3576,#141733 80%);box-shadow:0 0 0 1px rgba(201,164,92,.6),0 8px 22px rgba(20,23,51,.35)}
+  .price-box .name{margin:0;font-size:15px;letter-spacing:.12em;color:var(--gold-l)}
+  .price-box .yen{margin:6px 0 0;font-size:40px;letter-spacing:.04em;font-weight:600;
+    background:linear-gradient(180deg,#fff3c9,#e8c77c 60%,#c39a4c);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .price-box .yen small{font-size:15px;-webkit-text-fill-color:#f3e7c8}
+  .price-box .per{margin:10px 0 0;font-size:15px;line-height:1.9;color:#f3e7c8}
+
+  .deadline{margin:16px 0 0;padding:12px;border-radius:8px;text-align:center;font-size:16px;line-height:1.9;background:#fff3e3;
+    box-shadow:inset 0 0 0 1px rgba(168,80,94,.35)}
+  .deadline b{color:var(--rose)}
+
+  .cta{display:block;width:100%;margin:22px 0 0;padding:17px;border:none;border-radius:999px;font-family:var(--serif);font-size:17px;letter-spacing:.12em;
+    color:var(--night);background:linear-gradient(180deg,#fff0c4,#d8b465);box-shadow:0 4px 14px rgba(185,141,63,.45);text-align:center;text-decoration:none;cursor:pointer}
+  .cta:disabled{opacity:.55}
+
+  /* フォーム */
+  form label{display:block;margin:0 0 6px;font-size:14px;color:var(--ink-s);letter-spacing:.05em}
+  form .req{margin-left:6px;font-size:11px;color:var(--rose)}
+  form input[type=text],form input[type=email],form textarea{width:100%;padding:13px 12px;margin:0 0 18px;border:none;border-radius:8px;
+    font-family:var(--serif);font-size:16px;color:var(--ink);background:#fffaf0;box-shadow:inset 0 0 0 1px rgba(142,111,50,.45)}
+  form textarea{min-height:96px;resize:vertical;line-height:1.8}
+  .radios{display:flex;gap:10px;margin:0 0 18px}
+  .radios label{flex:1;margin:0;padding:12px 6px;text-align:center;border-radius:8px;background:#fffaf0;box-shadow:inset 0 0 0 1px rgba(142,111,50,.45);
+    font-size:15px;color:var(--ink);cursor:pointer}
+  .radios input{display:none}
+  .radios input:checked + span{color:var(--night);font-weight:600}
+  .radios label:has(input:checked){background:linear-gradient(180deg,#fff0c4,#e3c37a)}
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .err{margin:-6px 0 14px;color:var(--rose);font-size:14px;min-height:1em}
+  .done{display:none;text-align:center}
+  .done .big{font-size:20px;color:var(--gold-d);margin-bottom:10px}
+
+  footer{text-align:center;color:rgba(236,212,154,.7);font-size:12px;letter-spacing:.1em;padding:14px 0 30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- トップ -->
+  <header class="hero">
+    <div class="stars"></div>
+    <img class="top-img" id="topImg" src="images/top.jpg" alt="書き換えノート　自分のことまで、後回しにしなくていい。来年の私に、12月から魔法をかけよう。"
+      onerror="this.remove();document.getElementById('fallback').hidden=false">
+    <div class="fallback" id="fallback" hidden>
+      <p class="kicker">自分のことまで、後回しにしなくていい。</p>
+      <h1>書き換えノート</h1>
+      <p class="sub">来年の私に、12月から魔法をかけよう。</p>
+    </div>
+    <p class="sub" style="margin-top:22px">12月1日から使える、あなただけの、<br>あなたを取り戻すアプリ。</p>
+    <span class="badge">第1期　12月1日（火）スタート</span>
+  </header>
+
+  <!-- 問いかけ -->
+  <section class="page">
+    <p class="orn">✦ ✦ ✦</p>
+    <p class="q">あなたは今日、<br>自分の良かったと思うところを<br>いくつでもあげてみてください。</p>
+    <p class="q">……と言われて、<strong>何個</strong>思いつきますか？</p>
+    <p class="q" style="margin-top:26px">今日、悔しかったことありましたか？</p>
+    <p class="q">その悔しいこと、<br>違う角度から見てみると、<br>やっぱり悔しいですか？</p>
+    <p class="q" style="margin-top:26px">そういうちょこっとした時間、<br>自分に作ってあげてますか？</p>
+    <p class="q">この時間、実は自分にとっての<br><span class="em">ご褒美タイム</span>なんですよ。</p>
+  </section>
+
+  <!-- 仕組み -->
+  <section class="page">
+    <p class="orn">✦ ✦ ✦</p>
+    <h2>毎日、3行だけ。</h2>
+    <p>書き換えノートは、毎日3行だけ書くアプリです。</p>
+    <ol class="three">
+      <li>今日あったこと、そのまま</li>
+      <li>ちがう見方をしてみると</li>
+      <li>これから、どうしたいか</li>
+    </ol>
+    <p>書いたら、私（ゆわ）からのひと言が返ってきます。<br>「今日の小さなケア」も、毎日1つ届きます。</p>
+    <div class="care">
+      <p class="t">今日の小さなケア</p>
+      <p class="c">何もしない30秒を過ごす</p>
+      <p class="s">できそうだったら、やってみてね。<br>やらない日があっても、いいんだよ。</p>
+    </div>
+    <p class="center">書くのは<b>1日1分</b>。<br>書けない日は、空けて大丈夫です。</p>
+  </section>
+
+  <!-- しかけ -->
+  <section class="page">
+    <p class="orn">✦ ✦ ✦</p>
+    <h2>続けたくなる、しかけ</h2>
+    <div class="gimmick">
+      <div class="g"><div class="icon">✦</div><p>書いた日が増えるたび、星空に星が増えていく。</p></div>
+      <div class="g"><img src="../kakikae-note/images/puzzle_01.png" alt="" loading="lazy"><p>パズルが完成するたび、絵の中の住人から手紙が届く（全16通）。</p></div>
+      <div class="g"><img src="../kakikae-note/images/town/b02.webp" alt="" loading="lazy" style="object-fit:contain;background:radial-gradient(ellipse at 50% 120%,#2e3576,#141733)"><p>パズルの完成で建物が増えて、「あなただけの小さな街」が育っていく。</p></div>
+      <div class="g"><img src="../kakikae-note/images/doors/door_01.png" alt="" loading="lazy"><p>節目の日には「秘密の扉」が開いて、短い物語と宝物が待っている。</p></div>
+    </div>
+    <p class="center" style="margin-top:18px"><span class="em">休んでも、集めたものは消えません。</span></p>
+  </section>
+
+  <!-- 期間と伴走 -->
+  <section class="page">
+    <p class="orn">✦ ✦ ✦</p>
+    <h2>期間と、伴走</h2>
+    <ul class="info">
+      <li>使えるのは<b>1年間</b>（2027年12月31日まで）。</li>
+      <li>最初の<b>30日間</b>は、参加者専用のLINEオープンチャットで、私が伴走します。</li>
+      <li>つまずいた人には、<b>Zoomの設定会</b>も開きます。</li>
+      <li>スマホのホーム画面に追加して使います（iPhone・Android）。</li>
+    </ul>
+  </section>
+
+  <!-- 価格 -->
+  <section class="page">
+    <p class="orn">✦ ✦ ✦</p>
+    <p>ここまで読んでくれたあなたが、<br>最後に気になるのは値段ですよね？</p>
+    <p>無料？　いやいや。</p>
+    <p>本気で変わろうとしているあなたに、<br>無料では提供しません。</p>
+    <p>なぜなら、本気で変わりたい人は、<br>無料で終わっていたらダメなんです。</p>
+    <div class="price-box">
+      <p class="name">書き換えノート</p>
+      <p class="yen">9,800円<small>（税込）</small></p>
+      <p class="per">1日にすると、約27円。<br>うまい棒、だいたい2本分です。</p>
+    </div>
+    <p>自分に毎日うまい棒2本与えて、幸せになる。<br>自分自身を愛せるようになるなんて、<br>最高じゃないですか？</p>
+    <div class="deadline">
+      <b>12月1日（火）開始</b><br>申込締切は <b>11月30日（月）</b> です。
+    </div>
+    <a class="cta" href="#apply">申し込む</a>
+  </section>
+
+  <!-- 申込 -->
+  <section class="page" id="apply">
+    <p class="orn">✦ ✦ ✦</p>
+    <h2>お申し込み</h2>
+    <div id="formArea">
+      <p class="center soft" style="font-size:15px">下のフォームから申し込んでください。<br>確認したら、決済のご案内をお送りします。</p>
+      <form id="form" novalidate>
+        <label for="fName">お名前<span class="req">必須</span></label>
+        <input type="text" id="fName" name="name" autocomplete="name" placeholder="ニックネームでも大丈夫です" maxlength="60">
+        <label for="fMail">メールアドレス<span class="req">必須</span></label>
+        <input type="email" id="fMail" name="mail" autocomplete="email" inputmode="email" placeholder="ご案内をお送りします" maxlength="120">
+        <label>お使いのスマホ<span class="req">必須</span></label>
+        <div class="radios">
+          <label><input type="radio" name="phone" value="iPhone"><span>iPhone</span></label>
+          <label><input type="radio" name="phone" value="Android"><span>Android</span></label>
+          <label><input type="radio" name="phone" value="その他・わからない"><span>その他</span></label>
+        </div>
+        <label for="fMsg">ゆわへのひとこと（なくても大丈夫）</label>
+        <textarea id="fMsg" name="msg" maxlength="1000" placeholder="気になっていること、楽しみなことなど"></textarea>
+        <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off">
+        <p class="err" id="err"></p>
+        <button class="cta" type="submit" id="send">この内容で申し込む</button>
+      </form>
+    </div>
+    <div class="done" id="done">
+      <p class="big">お申し込み、ありがとうございます 🌸</p>
+      <p>確認のメールをお送りしました。<br>内容を確認して、ゆわから決済のご案内をお送りします。<br>少しだけお待ちくださいね。</p>
+      <p class="soft" style="font-size:14px">メールが届かないときは、迷惑メールのフォルダも見てみてください。</p>
+    </div>
+    <div class="done" id="closed">
+      <p class="big">第1期の受付は終了しました</p>
+      <p>たくさんのお申し込み、ありがとうございました。<br>次回のご案内を、楽しみに待っていてくださいね。</p>
+    </div>
+  </section>
+
+  <footer>Yuwa Entertainment ✦ 書き換えノート</footer>
+</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const CFG = window.KAKIKAE_CONFIG || {};
+
+  // 締切（11月30日 24時・日本時間）を過ぎたら、フォームを閉じる
+  const CLOSE = Date.parse('2026-12-01T00:00:00+09:00');
+  if (Date.now() >= CLOSE) { $('#formArea').style.display = 'none'; $('#closed').style.display = 'block'; }
+
+  $('#form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    const name = f.name.value.trim(), mail = f.mail.value.trim(), msg = f.msg.value.trim();
+    const phone = (f.querySelector('input[name=phone]:checked') || {}).value || '';
+    const err = $('#err'); err.textContent = '';
+    if (!name) { err.textContent = 'お名前を入れてください'; f.name.focus(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { err.textContent = 'メールアドレスを確かめてください'; f.mail.focus(); return; }
+    if (!phone) { err.textContent = 'お使いのスマホを選んでください'; return; }
+    const btn = $('#send'); btn.disabled = true; btn.textContent = '送っています…';
+    try {
+      const res = await fetch(CFG.GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'apply', name, mail, phone, msg, website: f.website.value })
+      });
+      const j = await res.json();
+      if (!j.ok) throw new Error(j.error || 'error');
+      $('#formArea').style.display = 'none'; $('#done').style.display = 'block';
+      $('#apply').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (x) {
+      err.textContent = 'うまく送れませんでした。電波のよいところで、もう一度ためしてください。';
+      btn.disabled = false; btn.textContent = 'この内容で申し込む';
+    }
+  });
+})();
+</script>
+</body>
+</html>
