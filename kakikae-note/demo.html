@@ -339,7 +339,7 @@
   .treasures button{width:100%;min-width:0;aspect-ratio:1/1;border-radius:50%;padding:8px;background:radial-gradient(circle at 50% 40%,#fffaf0,#efe0c0);
     box-shadow:inset 0 0 0 1px rgba(201,164,92,.55),0 3px 8px rgba(60,40,20,.15);font-size:22px;color:rgba(160,130,80,.5)}
   .treasures button img{width:100%;height:100%;object-fit:contain}
-  .town{position:relative;width:100%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#141733;
+  .town{position:relative;width:100%;aspect-ratio:3/4;touch-action:pan-y;border-radius:10px;overflow:hidden;background:#141733;
     box-shadow:inset 0 0 0 1px rgba(201,164,92,.45),0 6px 18px rgba(20,23,51,.25);-webkit-user-select:none;user-select:none}
   .town-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
   .town-items{position:absolute;inset:0}
@@ -500,7 +500,7 @@
           <div class="orn">✦ ✦ ✦</div>
           <h1>あなただけの小さな街</h1>
         </div>
-        <p class="note center" id="townHint">指でさわって、好きな場所へ動かせます。<br>建物をトンとタップすると、下に「大きく・小さく」のボタンが出ます。</p>
+        <p class="note center" id="townHint">指でさわって、好きな場所へ動かせます。<br>指2本で広げると大きく、つまむと小さくなります。<br>トンとタップすると、ボタンも出ます。</p>
         <div class="town" id="town">
           <img class="town-bg" id="townBg" alt="">
           <div class="town-items" id="townItems"></div>
@@ -1273,7 +1273,7 @@
       el.classList.add('drag');
     });
     el.addEventListener('pointermove', e => {
-      if (!active) return;
+      if (!active || townPinch) return;
       const dx = (e.clientX - sx) / rect.width * 100, dy = (e.clientY - sy) / rect.height * 100;
       if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 6) return;
       moved = true;
@@ -1295,6 +1295,45 @@
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
   }
+  // 指2本で、つまんで大きく・小さく（えらんでいる建物か、さわった建物）
+  const townPts = new Map(); let townPinch = null;
+  const tDist = () => { const v = Array.from(townPts.values()); return Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y) || 1; };
+  $('#town').addEventListener('pointerdown', e => {
+    townPts.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.target.closest('.town-item') });
+    if (townPts.size === 2) {
+      const first = Array.from(townPts.values()).find(v => v.t);
+      const id = (first && first.t.dataset.id) || townSel;
+      const p = id && townGetLayout().items[id];
+      if (p) { townPinch = { id, d0: tDist(), s0: p.s }; townSel = id; }
+    }
+  }, true);
+  $('#town').addEventListener('pointermove', e => {
+    if (!townPts.has(e.pointerId)) return;
+    const v = townPts.get(e.pointerId); v.x = e.clientX; v.y = e.clientY;
+    if (townPinch && townPts.size >= 2) {
+      e.preventDefault();
+      const p = townGetLayout().items[townPinch.id];
+      p.s = Math.min(2.6, Math.max(0.4, +(townPinch.s0 * tDist() / townPinch.d0).toFixed(3)));
+      const el = document.querySelector('.town-item[data-id="' + townPinch.id + '"]');
+      const it = townOwned().find(x => x.id === townPinch.id);
+      if (el && it) el.style.width = (it.w * p.s) + '%';
+    }
+  }, true);
+  const tEnd = e => {
+    townPts.delete(e.pointerId);
+    if (townPinch && townPts.size < 2) {
+      const id = townPinch.id; townPinch = null;
+      townLayout.t = Date.now(); townSave();
+      document.querySelectorAll('.town-item').forEach(x => x.classList.toggle('sel', x.dataset.id === id));
+      const it = townOwned().find(x => x.id === id);
+      $('#townTools').hidden = !it; if (it) $('#ttName').textContent = it.name;
+    }
+  };
+  $('#town').addEventListener('pointerup', tEnd, true);
+  $('#town').addEventListener('pointercancel', tEnd, true);
+  // iPhoneで、街の中のつまむ動きで画面全体が拡大されないように
+  ['gesturestart', 'gesturechange'].forEach(ev => $('#town').addEventListener(ev, e => e.preventDefault()));
+
   // 何もないところをタップしたら、えらぶのをやめる
   $('#town').addEventListener('pointerdown', e => {
     if (e.target.closest('.town-item') || e.target.closest('.town-tools')) return;
