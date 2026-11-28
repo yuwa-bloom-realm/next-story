@@ -85,6 +85,16 @@
   .price-box .yen{margin:6px 0 0;font-size:40px;letter-spacing:.04em;font-weight:600;
     background:linear-gradient(180deg,#fff3c9,#e8c77c 60%,#c39a4c);-webkit-background-clip:text;background-clip:text;color:transparent}
   .price-box .yen small{font-size:15px;-webkit-text-fill-color:#f3e7c8}
+  .price-box .day{margin:2px 0 0;font-size:24px;letter-spacing:.06em;font-weight:600;color:#f3e7c8}
+  .price-box .day span{font-size:76px;line-height:1.1;margin:0 4px;
+    background:linear-gradient(180deg,#fff3c9,#e8c77c 60%,#c39a4c);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 28px rgba(236,212,154,.25)}
+  .price-box .total{margin:10px 0 0;font-size:15px;letter-spacing:.06em;color:var(--gold-l)}
+  .contents{list-style:none;margin:20px 0 14px;padding:16px 16px 6px;border-radius:10px;background:#fffaf0;box-shadow:inset 0 0 0 1px rgba(201,164,92,.5)}
+  .contents li{position:relative;padding:0 0 10px 26px;font-size:16px;line-height:1.9}
+  .contents li::before{content:"✦";position:absolute;left:2px;top:0;color:var(--gold)}
+  .contents b{color:var(--gold-d);font-weight:600}
+  .all{font-size:17px;color:var(--ink)}
   .price-box .per{margin:10px 0 0;font-size:15px;line-height:1.9;color:#f3e7c8}
 
   .deadline{margin:16px 0 0;padding:12px;border-radius:8px;text-align:center;font-size:16px;line-height:1.9;background:#fff3e3;
@@ -236,10 +246,20 @@
     <p>無料？　いやいや。</p>
     <p>本気で変わろうとしているあなたに、<br>無料では提供しません。</p>
     <p>なぜなら、本気で変わりたい人は、<br>無料で終わっていたらダメなんです。</p>
+    <ul class="contents">
+      <li><b>365日分</b>の、ゆわのひと言。</li>
+      <li><b>365個</b>の「今日の小さなケア」。</li>
+      <li>パズル完成で届く手紙、<b>16通</b>。</li>
+      <li>節目に開く「秘密の扉」の物語、<b>7話</b>。</li>
+      <li>少しずつ育っていく、<b>あなただけの小さな街</b>。</li>
+      <li>そして、最初の<b>30日間</b>は私が伴走します。</li>
+    </ul>
+    <p class="center all">全部合わせて、9,800円です。</p>
     <div class="price-box">
-      <p class="name">書き換えノート</p>
-      <p class="yen">9,800円<small>（税込）</small></p>
-      <p class="per">1日にすると、約27円。<br>うまい棒、だいたい2本分です。</p>
+      <p class="name">1日にすると</p>
+      <p class="day">約<span>27</span>円</p>
+      <p class="total">書き換えノート　9,800円（税込）</p>
+      <p class="per">うまい棒、だいたい2本分です。</p>
     </div>
     <p>自分に毎日うまい棒2本与えて、幸せになる。<br>自分自身を愛せるようになるなんて、<br>最高じゃないですか？</p>
     <div class="deadline">
