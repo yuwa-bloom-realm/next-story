@@ -94,9 +94,20 @@
     background:linear-gradient(180deg,#fff3c9,#e8c77c 60%,#c39a4c);-webkit-background-clip:text;background-clip:text;color:transparent}
   .price-box .yen small{font-size:15px;-webkit-text-fill-color:#f3e7c8}
   .price-box .day{margin:2px 0 0;font-size:24px;letter-spacing:.06em;font-weight:600;color:#f3e7c8}
-  .price-box .day span{font-size:76px;line-height:1.1;margin:0 4px;
+  .price-box{position:relative;overflow:visible}
+  .price-box .day{font-size:28px}
+  .price-box .day span{display:inline-block;font-size:110px;line-height:1.05;margin:0 6px;animation:n27glow 2.8s ease-in-out infinite;
     background:linear-gradient(180deg,#fff3c9,#e8c77c 60%,#c39a4c);-webkit-background-clip:text;background-clip:text;color:transparent;
     text-shadow:0 0 28px rgba(236,212,154,.25)}
+  @keyframes n27glow{0%,100%{filter:drop-shadow(0 0 6px rgba(236,212,154,.35))}50%{filter:drop-shadow(0 0 22px rgba(255,226,150,.95))}}
+  .price-box .day span.pop{animation:n27pop .6s ease, n27glow 2.8s ease-in-out .6s infinite}
+  @keyframes n27pop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .pb-sp{position:absolute;font-style:normal;color:#fff3c9;pointer-events:none;opacity:0;
+    text-shadow:0 0 8px rgba(255,226,140,1),0 0 16px rgba(236,212,154,.8);animation:twinkle 2.8s ease-in-out infinite}
+  .pb-sp.a{left:14%;top:30%;font-size:20px;animation-delay:.1s}
+  .pb-sp.b{right:15%;top:26%;font-size:16px;animation-delay:.9s}
+  .pb-sp.c{right:22%;top:55%;font-size:14px;animation-delay:1.6s}
+  .pb-sp.d{left:22%;top:58%;font-size:13px;animation-delay:2.2s}
   .price-box .total{margin:10px 0 0;font-size:15px;letter-spacing:.06em;color:var(--gold-l)}
   .me{width:150px;height:150px;margin:4px auto 8px;border-radius:50%;object-fit:cover;
     box-shadow:0 0 0 3px #f8efdc,0 0 0 5px rgba(201,164,92,.7),0 6px 16px rgba(20,23,51,.25)}
@@ -191,6 +202,7 @@
   .send-wrap .s3{right:18%;bottom:-10px;font-size:13px;animation-delay:1.8s}
   @media (prefers-reduced-motion: reduce){
     .shoot{display:none}
+    .price-box .day span,.pb-sp{animation:none}
     .twinkles i,.float,.door-wrap,.door-wrap::after,.cta::after,.cta.sparkle,.send-wrap .sp{animation:none}
     .twinkles i{opacity:.8}
     .js .page{opacity:1;transform:none;transition:none}
@@ -315,7 +327,8 @@
     <p class="center all">全部合わせて、9,800円です。</p>
     <div class="price-box">
       <p class="name">1日にすると</p>
-      <p class="day">約<span>27</span>円</p>
+      <p class="day">約<span id="n27">27</span>円</p>
+      <i class="pb-sp a">✦</i><i class="pb-sp b">✧</i><i class="pb-sp c">✦</i><i class="pb-sp d">✧</i>
       <p class="total">書き換えノート　9,800円（税込）</p>
       <p class="per">うまい棒、だいたい2本分です。</p>
     </div>
@@ -446,6 +459,26 @@
       setTimeout(fire, 20000 + Math.random() * 10000);          // 20〜30秒に1回
     };
     setTimeout(fire, 12000);
+  }
+
+  // 1日約27円：見えたら 0 → 27 とカウントアップ
+  const n27 = $('#n27');
+  if (n27 && !reduce) {
+    let done = false;
+    const run = () => {
+      if (done) return;
+      const r = n27.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.85 || r.bottom < 0) return;
+      done = true;
+      const t0 = performance.now(), dur = 1400;
+      const step = t => {
+        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        n27.textContent = Math.round(27 * e);
+        if (k < 1) requestAnimationFrame(step); else { n27.textContent = '27'; n27.classList.add('pop'); }
+      };
+      n27.textContent = '0'; requestAnimationFrame(step);
+    };
+    window.addEventListener('scroll', run, { passive: true }); setInterval(run, 600);
   }
 
   // 秘密の扉：タップでキラッ
