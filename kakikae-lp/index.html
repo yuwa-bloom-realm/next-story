@@ -141,11 +141,11 @@
   .shoot::after{content:"";position:absolute;right:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:#fff;
     box-shadow:0 0 10px 3px rgba(255,236,170,.9)}
   .sh1{animation:shoot1 1.5s cubic-bezier(.3,.1,.4,1) .7s 1 forwards}
-  .sh2{animation:shoot2 1.4s cubic-bezier(.3,.1,.4,1) 9s infinite}
+  .sh2{animation:shoot2 14s linear 6s infinite}
   @keyframes shoot1{0%{opacity:0;transform:translate(-30vw,10px) rotate(24deg) scaleX(.2)}
     12%{opacity:1}75%{opacity:1}100%{opacity:0;transform:translate(70vw,230px) rotate(24deg) scaleX(1)}}
   @keyframes shoot2{0%{opacity:0;transform:translate(0vw,-10px) rotate(28deg) scaleX(.2)}
-    10%{opacity:1}55%{opacity:1}70%,100%{opacity:0;transform:translate(75vw,230px) rotate(28deg) scaleX(1)}}
+    1%{opacity:1}7%{opacity:1}10%,100%{opacity:0;transform:translate(75vw,230px) rotate(28deg) scaleX(1)}}
   @keyframes twinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}45%{opacity:1;transform:scale(1.1) rotate(20deg)}60%{opacity:.85;transform:scale(.9) rotate(30deg)}}
   .js .page{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s ease}
   .js .page.show{opacity:1;transform:none}
