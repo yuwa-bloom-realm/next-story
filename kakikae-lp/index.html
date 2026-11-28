@@ -159,8 +159,18 @@
   .cta::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:30%;transform:skewX(-20deg);
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);animation:ctaShine 4.5s ease-in-out infinite}
   @keyframes ctaShine{0%,70%{left:-40%}88%,100%{left:120%}}
+  .send-wrap{position:relative;margin-top:22px}
+  .send-wrap .cta{margin-top:0}
+  .cta.sparkle{animation:ctaGlow 2.6s ease-in-out infinite}
+  .cta.sparkle::after{animation-duration:2.6s}
+  @keyframes ctaGlow{0%,100%{box-shadow:0 4px 14px rgba(185,141,63,.45)}50%{box-shadow:0 4px 22px rgba(255,214,120,.9),0 0 0 2px rgba(255,236,170,.6)}}
+  .send-wrap .sp{position:absolute;font-style:normal;color:#fff3c9;pointer-events:none;
+    text-shadow:0 0 8px rgba(255,226,140,1),0 0 14px rgba(236,212,154,.8);opacity:0;animation:twinkle 2.6s ease-in-out infinite}
+  .send-wrap .s1{left:4%;top:-10px;font-size:18px;animation-delay:.2s}
+  .send-wrap .s2{right:6%;top:-8px;font-size:15px;animation-delay:1.1s}
+  .send-wrap .s3{right:18%;bottom:-10px;font-size:13px;animation-delay:1.8s}
   @media (prefers-reduced-motion: reduce){
-    .twinkles i,.float,.door-wrap,.door-wrap::after,.cta::after{animation:none}
+    .twinkles i,.float,.door-wrap,.door-wrap::after,.cta::after,.cta.sparkle,.send-wrap .sp{animation:none}
     .twinkles i{opacity:.8}
     .js .page{opacity:1;transform:none;transition:none}
   }
@@ -328,7 +338,7 @@
         <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off">
         <p class="err" id="err"></p>
         <p class="soft" style="font-size:13px;line-height:1.8;margin:-4px 0 0">デジタルサービスのため、お支払い後のキャンセル・返金はお受けしておりません。くわしくは<a href="tokushoho.html" style="color:var(--gold-d)">特定商取引法に基づく表記</a>をご覧ください。</p>
-        <button class="cta" type="submit" id="send">この内容で申し込む</button>
+        <div class="send-wrap"><button class="cta sparkle" type="submit" id="send">この内容で申し込む</button><i class="sp s1">✦</i><i class="sp s2">✧</i><i class="sp s3">✦</i></div>
       </form>
     </div>
     <div class="done" id="done">
