@@ -306,7 +306,7 @@
     <p class="orn">✦ ✦ ✦</p>
     <h2>お申し込み</h2>
     <div id="formArea">
-      <p class="center soft" style="font-size:15px">下のフォームから申し込んでください。<br>確認したら、決済のご案内をお送りします。</p>
+      <p class="center soft" style="font-size:15px">下のフォームから申し込んでください。<br>確認したら、決済のご案内をお送りします。<br>お支払いは、ご案内から3日以内にお願いします。</p>
       <form id="form" novalidate>
         <label for="fName">お名前<span class="req">必須</span></label>
         <input type="text" id="fName" name="name" autocomplete="name" placeholder="ニックネームでも大丈夫です" maxlength="60">
@@ -318,10 +318,16 @@
           <label><input type="radio" name="phone" value="Android"><span>Android</span></label>
           <label><input type="radio" name="phone" value="その他・わからない"><span>その他</span></label>
         </div>
+        <label>お支払い方法<span class="req">必須</span></label>
+        <div class="radios">
+          <label><input type="radio" name="pay" value="銀行振込"><span>銀行振込</span></label>
+          <label><input type="radio" name="pay" value="クレジットカード"><span>カード</span></label>
+        </div>
         <label for="fMsg">ゆわへのひとこと（なくても大丈夫）</label>
         <textarea id="fMsg" name="msg" maxlength="1000" placeholder="気になっていること、楽しみなことなど"></textarea>
         <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off">
         <p class="err" id="err"></p>
+        <p class="soft" style="font-size:13px;line-height:1.8;margin:-4px 0 0">デジタルサービスのため、お支払い後のキャンセル・返金はお受けしておりません。くわしくは<a href="tokushoho.html" style="color:var(--gold-d)">特定商取引法に基づく表記</a>をご覧ください。</p>
         <button class="cta" type="submit" id="send">この内容で申し込む</button>
       </form>
     </div>
@@ -336,7 +342,9 @@
     </div>
   </section>
 
-  <footer>Yuwa Entertainment ✦ 書き換えノート</footer>
+  <footer>Yuwa Entertainment ✦ 書き換えノート<br>
+    <a href="tokushoho.html" style="color:rgba(236,212,154,.75)">特定商取引法に基づく表記</a>　
+    <a href="mailto:yuwa.sakuraba@gmail.com" style="color:rgba(236,212,154,.75)">お問い合わせ</a></footer>
 </div>
 
 <script>
@@ -397,16 +405,18 @@
     const f = e.target;
     const name = f.name.value.trim(), mail = f.mail.value.trim(), msg = f.msg.value.trim();
     const phone = (f.querySelector('input[name=phone]:checked') || {}).value || '';
+    const pay = (f.querySelector('input[name=pay]:checked') || {}).value || '';
     const err = $('#err'); err.textContent = '';
     if (!name) { err.textContent = 'お名前を入れてください'; f.name.focus(); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { err.textContent = 'メールアドレスを確かめてください'; f.mail.focus(); return; }
     if (!phone) { err.textContent = 'お使いのスマホを選んでください'; return; }
+    if (!pay) { err.textContent = 'お支払い方法を選んでください'; return; }
     const btn = $('#send'); btn.disabled = true; btn.textContent = '送っています…';
     try {
       const res = await fetch(CFG.GAS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'apply', name, mail, phone, msg, website: f.website.value })
+        body: JSON.stringify({ action: 'apply', name, mail, phone, pay, msg, website: f.website.value })
       });
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || 'error');
