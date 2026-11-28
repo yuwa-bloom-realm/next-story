@@ -1221,44 +1221,45 @@
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
   }
-  // 指2本で、つまんで大きく・小さく（えらんでいる建物か、さわった建物）
-  const townPts = new Map(); let townPinch = null;
-  const tDist = () => { const v = Array.from(townPts.values()); return Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y) || 1; };
-  $('#town').addEventListener('pointerdown', e => {
-    townPts.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.target.closest('.town-item') });
-    if (townPts.size === 2) {
-      const first = Array.from(townPts.values()).find(v => v.t);
-      const id = (first && first.t.dataset.id) || townSel;
-      const p = id && townGetLayout().items[id];
-      if (p) { townPinch = { id, d0: tDist(), s0: p.s }; townSel = id; }
+  // 指2本で、つまんで大きく・小さく（iPhoneは touch で受けて、画面の拡大を止める）
+  let townPinch = null;
+  const tDist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
+  const townEl = $('#town');
+  townEl.addEventListener('touchstart', e => {
+    if (e.touches.length < 2) return;
+    e.preventDefault();
+    let id = null;
+    for (const t of e.touches) { const it = t.target.closest && t.target.closest('.town-item'); if (it) { id = it.dataset.id; break; } }
+    id = id || townSel;
+    if (!id) { // さわった建物がなければ、2本の指のまんなかに一番近い建物
+      const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2, my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      let best = 1e9;
+      document.querySelectorAll('.town-item').forEach(el => { const r = el.getBoundingClientRect(); const d = Math.hypot(r.x + r.width / 2 - mx, r.y + r.height / 2 - my); if (d < best) { best = d; id = el.dataset.id; } });
     }
-  }, true);
-  $('#town').addEventListener('pointermove', e => {
-    if (!townPts.has(e.pointerId)) return;
-    const v = townPts.get(e.pointerId); v.x = e.clientX; v.y = e.clientY;
-    if (townPinch && townPts.size >= 2) {
-      e.preventDefault();
-      const p = townGetLayout().items[townPinch.id];
-      p.s = Math.min(2.6, Math.max(0.4, +(townPinch.s0 * tDist() / townPinch.d0).toFixed(3)));
-      const el = document.querySelector('.town-item[data-id="' + townPinch.id + '"]');
-      const it = townOwned().find(x => x.id === townPinch.id);
-      if (el && it) el.style.width = (it.w * p.s) + '%';
-    }
-  }, true);
+    const p = id && townGetLayout().items[id];
+    if (p) { townPinch = { id, d0: tDist(e.touches), s0: p.s }; townSel = id; }
+  }, { passive: false });
+  townEl.addEventListener('touchmove', e => {
+    if (e.touches.length < 2) return;
+    e.preventDefault();
+    if (!townPinch) return;
+    const p = townGetLayout().items[townPinch.id];
+    p.s = Math.min(2.6, Math.max(0.4, +(townPinch.s0 * tDist(e.touches) / townPinch.d0).toFixed(3)));
+    const el = document.querySelector('.town-item[data-id="' + townPinch.id + '"]');
+    const it = townOwned().find(x => x.id === townPinch.id);
+    if (el && it) el.style.width = (it.w * p.s) + '%';
+  }, { passive: false });
   const tEnd = e => {
-    townPts.delete(e.pointerId);
-    if (townPinch && townPts.size < 2) {
-      const id = townPinch.id; townPinch = null;
-      townLayout.t = Date.now(); townSave();
-      document.querySelectorAll('.town-item').forEach(x => x.classList.toggle('sel', x.dataset.id === id));
-      const it = townOwned().find(x => x.id === id);
-      $('#townTools').hidden = !it; if (it) $('#ttName').textContent = it.name;
-    }
+    if (!townPinch || e.touches.length >= 2) return;
+    const id = townPinch.id; townPinch = null;
+    townLayout.t = Date.now(); townSave();
+    document.querySelectorAll('.town-item').forEach(x => x.classList.toggle('sel', x.dataset.id === id));
+    const it = townOwned().find(x => x.id === id);
+    $('#townTools').hidden = !it; if (it) $('#ttName').textContent = it.name;
   };
-  $('#town').addEventListener('pointerup', tEnd, true);
-  $('#town').addEventListener('pointercancel', tEnd, true);
-  // iPhoneで、街の中のつまむ動きで画面全体が拡大されないように
-  ['gesturestart', 'gesturechange'].forEach(ev => $('#town').addEventListener(ev, e => e.preventDefault()));
+  townEl.addEventListener('touchend', tEnd);
+  townEl.addEventListener('touchcancel', tEnd);
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => townEl.addEventListener(ev, e => e.preventDefault(), { passive: false }));
 
   // 何もないところをタップしたら、えらぶのをやめる
   $('#town').addEventListener('pointerdown', e => {
